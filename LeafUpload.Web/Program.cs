@@ -14,6 +14,17 @@ builder.Services.AddSingleton<ITreatmentAdvisor, SimpleTreatmentAdvisor>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages(); // ✅ Enable Razor Pages
 
+// Mobile app + web app clients call the API directly with no auth for now,
+// so allow any origin. Lock this down to specific origins once the web
+// app's domain is known.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AppClients", policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
 // ✅ Add Swagger and configure for file uploads
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -32,6 +43,18 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Return a predictable JSON error body for unhandled exceptions instead of
+// an empty response or an HTML error page, so app clients can always parse
+// error bodies the same way as success bodies.
+app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+{
+    context.Response.ContentType = "application/json";
+    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+}));
+
+app.UseCors("AppClients");
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>

@@ -31,13 +31,13 @@ namespace LeafUpload.Web.Controllers
             var file = request.File;
 
             if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
+                return BadRequest(new { error = "No file uploaded." });
 
             if (file.Length > MaxFileSizeBytes)
-                return BadRequest("File is too large. Maximum size is 10 MB.");
+                return BadRequest(new { error = "File is too large. Maximum size is 10 MB." });
 
             if (!AllowedContentTypes.Contains(file.ContentType))
-                return BadRequest("Unsupported file type. Please upload a JPEG, PNG, WEBP, or BMP image.");
+                return BadRequest(new { error = "Unsupported file type. Please upload a JPEG, PNG, WEBP, or BMP image." });
 
             var filePath = Path.GetTempFileName();
             try
@@ -75,6 +75,27 @@ namespace LeafUpload.Web.Controllers
                 if (System.IO.File.Exists(filePath))
                     System.IO.File.Delete(filePath);
             }
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetDiagnosis(Guid id)
+        {
+            var diagnosis = await _repository.GetDiagnosisByIdAsync(id);
+            if (diagnosis == null)
+                return NotFound(new { error = $"No diagnosis found with id '{id}'." });
+
+            var sample = await _repository.GetSampleByIdAsync(diagnosis.LeafSampleId);
+
+            return Ok(new
+            {
+                DiagnosisId = diagnosis.Id,
+                SampleId = diagnosis.LeafSampleId,
+                FileName = sample?.FileName,
+                UploadedAt = sample?.UploadedAt,
+                Disease = diagnosis.PredictedDisease,
+                Confidence = diagnosis.Confidence,
+                Treatment = diagnosis.TreatmentAdvice
+            });
         }
     }
 
