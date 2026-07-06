@@ -50,7 +50,7 @@
     },
     {
       "name": "EXAMPLE_new_source",
-      "_comment": "Template for a new dataset (e.g. PlantDoc, PlantSeg, a cassava/rice/coffee dataset). Run `python prepare_dataset.py discover --source <path>` first to list its actual leaf folder names, then fill in 'mapping' below: source folder name -> canonical label. Map to a brand-new label (not in canonical_labels above) to introduce a new class - add it to canonical_labels too. Any source folder you don't map is copied into <out>/_unmapped/<name>/ instead of being silently dropped or guessed.",
+      "_comment": "Template for a new dataset (e.g. PlantSeg, a cassava/rice/coffee dataset). Run `python prepare_dataset.py discover --source <path>` first to list its actual leaf folder names, then fill in 'mapping' below: source folder name -> canonical label. Map to a brand-new label (not in canonical_labels above) to introduce a new class - add it to canonical_labels too. Any source folder you don't map is copied into <out>/_unmapped/<name>/ instead of being silently dropped or guessed.",
       "already_split": false,
       "path": "C:\\path\\to\\raw\\dataset",
       "mapping": {

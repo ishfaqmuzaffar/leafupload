@@ -117,15 +117,20 @@ def cmd_merge(args):
         print(f"\n=== Source: {name} ===")
 
         if source.get("already_split"):
+            mapping = source.get("mapping", {})
             for split, key in (("train", "train_path"), ("valid", "valid_path")):
                 split_root = Path(source[key])
                 if not split_root.is_dir():
                     print(f"  WARNING: {key} not found: {split_root} (skipping)")
                     continue
                 for label_dir in sorted(d for d in split_root.iterdir() if d.is_dir()):
-                    label = label_dir.name
+                    label = mapping.get(label_dir.name, label_dir.name)
                     if label not in canonical_labels:
-                        print(f"  WARNING: folder '{label}' is not in canonical_labels - skipping")
+                        unmapped_folders.append(label_dir.name)
+                        images = [f for f in label_dir.iterdir() if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS]
+                        for img in images:
+                            copy_file(img, unmapped_root / label_dir.name / img.name, args.link)
+                        print(f"  WARNING: folder '{label_dir.name}' has no mapping to a canonical label - copied to _unmapped instead")
                         continue
                     images = [f for f in label_dir.iterdir() if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS]
                     for img in images:
