@@ -1,0 +1,62 @@
+{
+  "_comment": "Canonical label taxonomy for the leaf disease model. 'canonical_labels' is the exact 38-class vocabulary extracted from the currently deployed MLModel1.mlnet - do not rename these or the existing model's classes will no longer line up with a fine-tuned successor. Add new canonical labels at the bottom of the list when you bring in a crop/disease that isn't covered yet.",
+  "canonical_labels": [
+    "Apple___Apple_scab",
+    "Apple___Black_rot",
+    "Apple___Cedar_apple_rust",
+    "Apple___healthy",
+    "Blueberry___healthy",
+    "Cherry_(including_sour)___healthy",
+    "Cherry_(including_sour)___Powdery_mildew",
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+    "Corn_(maize)___Common_rust_",
+    "Corn_(maize)___healthy",
+    "Corn_(maize)___Northern_Leaf_Blight",
+    "Grape___Black_rot",
+    "Grape___Esca_(Black_Measles)",
+    "Grape___healthy",
+    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)",
+    "Orange___Haunglongbing_(Citrus_greening)",
+    "Peach___Bacterial_spot",
+    "Peach___healthy",
+    "Pepper,_bell___Bacterial_spot",
+    "Pepper,_bell___healthy",
+    "Potato___Early_blight",
+    "Potato___healthy",
+    "Potato___Late_blight",
+    "Raspberry___healthy",
+    "Soybean___healthy",
+    "Squash___Powdery_mildew",
+    "Strawberry___healthy",
+    "Strawberry___Leaf_scorch",
+    "Tomato___Bacterial_spot",
+    "Tomato___Early_blight",
+    "Tomato___healthy",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Spider_mites Two-spotted_spider_mite",
+    "Tomato___Target_Spot",
+    "Tomato___Tomato_mosaic_virus",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus"
+  ],
+  "sources": [
+    {
+      "name": "new_plant_diseases_dataset",
+      "_comment": "The dataset the current model was already trained on. Point this at wherever you re-download/keep it; folder names already match canonical_labels exactly, so no mapping is needed.",
+      "already_split": true,
+      "train_path": "C:\\path\\to\\NewPlantDiseasesDataset(Augmented)\\train",
+      "valid_path": "C:\\path\\to\\NewPlantDiseasesDataset(Augmented)\\valid"
+    },
+    {
+      "name": "EXAMPLE_new_source",
+      "_comment": "Template for a new dataset (e.g. PlantDoc, PlantSeg, a cassava/rice/coffee dataset). Run `python prepare_dataset.py discover --source <path>` first to list its actual leaf folder names, then fill in 'mapping' below: source folder name -> canonical label. Map to a brand-new label (not in canonical_labels above) to introduce a new class - add it to canonical_labels too. Any source folder you don't map is copied into <out>/_unmapped/<name>/ instead of being silently dropped or guessed.",
+      "already_split": false,
+      "path": "C:\\path\\to\\raw\\dataset",
+      "mapping": {
+        "Tomato leaf": "Tomato___healthy",
+        "Tomato Early blight leaf": "Tomato___Early_blight"
+      }
+    }
+  ]
+}

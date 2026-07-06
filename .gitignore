@@ -16,3 +16,10 @@ Thumbs.db
 ## ML.NET Model Builder authoring artifact - not needed to build/run the app
 ## (only MLModel1.mlnet is loaded at runtime); keep locally, don't ship it.
 LeafUpload.Infrastructure/MLModel1.zip
+
+## Retraining pipeline outputs - large, machine-local, regenerate via training/
+LeafUpload.ModelExporter/LeafUpload.ModelExporter/workspace/
+LeafUpload.ModelExporter/LeafUpload.ModelExporter/*.mlnet
+training/merged_dataset/
+training/*.mlnet
+

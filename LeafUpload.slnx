@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/LeafUpload.ModelExporter/">
+    <Project Path="LeafUpload.ModelExporter/LeafUpload.ModelExporter/LeafUpload.ModelExporter.csproj" />
+  </Folder>
   <Project Path="LeafUpload.Core/LeafUpload.Core.csproj" />
   <Project Path="LeafUpload.Infrastructure/LeafUpload.Infrastructure.csproj" />
   <Project Path="LeafUpload.Web/LeafUpload.Web.csproj" />
