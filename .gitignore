@@ -1,0 +1,18 @@
+## .NET
+bin/
+obj/
+*.user
+
+## Visual Studio
+.vs/
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Claude Code local settings
+.claude/settings.local.json
+
+## ML.NET Model Builder authoring artifact - not needed to build/run the app
+## (only MLModel1.mlnet is loaded at runtime); keep locally, don't ship it.
+LeafUpload.Infrastructure/MLModel1.zip

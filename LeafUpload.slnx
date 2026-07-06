@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="LeafUpload.Core/LeafUpload.Core.csproj" />
+  <Project Path="LeafUpload.Infrastructure/LeafUpload.Infrastructure.csproj" />
+  <Project Path="LeafUpload.Web/LeafUpload.Web.csproj" />
+</Solution>

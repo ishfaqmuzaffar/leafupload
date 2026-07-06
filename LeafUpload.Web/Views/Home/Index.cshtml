@@ -1,0 +1,108 @@
+@{
+    ViewData["Title"] = "Leaf Diagnosis";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- ✅ Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- ✅ Custom Styles -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #e6f4ea, #cce5cc);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container-box {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0px 6px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 600px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            color: #2f855a;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        h2 {
+            font-size: 20px;
+            color: #555;
+            margin-bottom: 25px;
+        }
+        .btn-upload {
+            background: #38a169;
+            color: white;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-size: 16px;
+            transition: 0.3s ease-in-out;
+        }
+        .btn-upload:hover {
+            background: #2f855a;
+        }
+        .results-card {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f9f9f9;
+            border-left: 6px solid #38a169;
+            text-align: left;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-box">
+        <h1>JKCIP Project Demo</h1>
+        <h2>🌿 Leaf Disease Identification System</h2>
+
+        <!-- Upload Form -->
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <input type="file" name="file" class="form-control mb-3" />
+                <button type="submit" class="btn btn-upload">Upload & Diagnose</button>
+            </div>
+        </form>
+
+        <!-- Error -->
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Error</div>
+        }
+
+        <!-- Results -->
+        @if (ViewBag.Disease != null)
+        {
+            <div class="results-card">
+                <h4>🩺 Diagnosis Result</h4>
+                <p><b>Disease:</b> @ViewBag.Disease</p>
+                <p><b>Confidence:</b> @(ViewBag.Confidence?.ToString("P2"))</p>
+                <p><b>Treatment:</b> @ViewBag.Treatment</p>
+            </div>
+        }
+
+        <footer>
+            🌱 Powered by ML.NET | JKCIP Demo
+        </footer>
+    </div>
+
+    <!-- ✅ Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
