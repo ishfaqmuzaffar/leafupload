@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "leafupload-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "LeafUpload.Web", "--urls", "http://localhost:5299"],
+      "port": 5299
+    }
+  ]
+}
