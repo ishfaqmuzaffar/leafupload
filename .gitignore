@@ -22,4 +22,7 @@ LeafUpload.ModelExporter/LeafUpload.ModelExporter/workspace/
 LeafUpload.ModelExporter/LeafUpload.ModelExporter/*.mlnet
 training/merged_dataset/
 training/*.mlnet
+training/workspace_full/
+training/*.log
+training/*.pid
 
