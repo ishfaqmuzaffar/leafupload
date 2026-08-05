@@ -1,7 +1,12 @@
 using LeafUpload.Core.Abstractions;
+using LeafUpload.Core.Models;
+using LeafUpload.Infrastructure.Auth;
 using LeafUpload.Infrastructure.Persistence;
 using LeafUpload.Infrastructure.Rules;
 using LeafUpload.Infrastructure.ML;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +15,29 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<ILeafRepository, InMemoryLeafRepository>();
 builder.Services.AddSingleton<ILeafDiseaseModel, LeafDiseaseModel>();
 builder.Services.AddSingleton<ITreatmentAdvisor, SimpleTreatmentAdvisor>();
+
+// Farmer accounts + farms need to survive a redeploy, unlike the in-memory
+// diagnosis repository above, so this uses a real (SQLite) database.
+builder.Services.AddDbContext<LeafUploadDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("LeafUploadDb") ?? "Data Source=leafupload.db"));
+
+builder.Services.AddScoped<IFarmerRepository, EfFarmerRepository>();
+builder.Services.AddScoped<IAdvisoryRepository, EfAdvisoryRepository>();
+builder.Services.AddScoped<IFarmerAuthService, FarmerAuthService>();
+builder.Services.AddSingleton<IPasswordHasher<Farmer>, PasswordHasher<Farmer>>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.ExpireTimeSpan = TimeSpan.FromDays(14);
+        options.SlidingExpiration = true;
+        options.Cookie.Name = "LeafUpload.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages(); // ✅ Enable Razor Pages
@@ -44,6 +72,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Auto-apply EF Core migrations on startup so a fresh Coolify deploy against
+// an empty mounted volume self-initializes the schema with no manual step.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<LeafUploadDbContext>();
+    db.Database.Migrate();
+}
+
 // Return a predictable JSON error body for unhandled exceptions instead of
 // an empty response or an HTML error page, so app clients can always parse
 // error bodies the same way as success bodies.
@@ -54,7 +90,10 @@ app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
     await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
 }));
 
+app.UseRouting();
 app.UseCors("AppClients");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>

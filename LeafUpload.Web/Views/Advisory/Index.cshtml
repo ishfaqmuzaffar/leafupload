@@ -1,0 +1,34 @@
+@model IReadOnlyList<LeafUpload.Core.Models.Farm>
+@{
+    ViewData["Title"] = "Crop Advisories";
+}
+
+<div class="card-box">
+    <span class="brand-badge">🌿 JKCIP/HADP</span>
+    <h1 class="title">Crop Advisories</h1>
+    <p class="subtitle">Weather-driven guidance for your registered farm@(Model.Count == 1 ? "" : "s").</p>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert-modern">You don't have a registered farm yet.</div>
+    }
+    else
+    {
+        foreach (var farm in Model)
+        {
+            <div class="result-card">
+                <div class="result-head">
+                    <div class="result-emoji">🌾</div>
+                    <div>
+                        <div class="result-status">@farm.CropType</div>
+                        <p class="result-disease">@(farm.ResolvedLocationName ?? farm.PlaceName)</p>
+                    </div>
+                </div>
+                <div class="treatment-box">
+                    <strong>Advisory</strong>
+                    Weather-based advisories are coming soon for this farm.
+                </div>
+            </div>
+        }
+    }
+</div>

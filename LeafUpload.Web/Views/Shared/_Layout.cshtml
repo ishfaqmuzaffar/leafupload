@@ -1,0 +1,407 @@
+@{
+    var currentPath = Context.Request.Path.Value ?? "";
+    bool IsActive(string prefix) => currentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Space+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --leaf-dark: #06251a;
+            --leaf-mid: #0f5132;
+            --leaf-bright: #22c55e;
+            --leaf-accent: #34d9c4;
+            --leaf-warn: #f59e0b;
+            --leaf-danger: #ef4444;
+            --glass: rgba(255, 255, 255, 0.92);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 32px 16px;
+            background: radial-gradient(circle at 15% 20%, #14532d 0%, transparent 45%),
+                        radial-gradient(circle at 85% 15%, #0e7490 0%, transparent 40%),
+                        radial-gradient(circle at 50% 90%, #166534 0%, transparent 50%),
+                        linear-gradient(160deg, var(--leaf-dark), #082f2a 55%, #04140f);
+            background-size: 200% 200%;
+            animation: driftBg 18s ease-in-out infinite;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @@keyframes driftBg {
+            0%, 100% { background-position: 0% 0%, 100% 0%, 50% 100%, 0% 0%; }
+            50% { background-position: 10% 15%, 90% 10%, 45% 85%, 100% 100%; }
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.35;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .blob-1 { width: 340px; height: 340px; background: var(--leaf-bright); top: -80px; left: -80px; animation: floatSlow 14s ease-in-out infinite; }
+        .blob-2 { width: 280px; height: 280px; background: var(--leaf-accent); bottom: -60px; right: -60px; animation: floatSlow 16s ease-in-out infinite reverse; }
+
+        @@keyframes floatSlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -20px) scale(1.08); }
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 620px;
+        }
+
+        .card-box {
+            background: var(--glass);
+            backdrop-filter: blur(18px);
+            border-radius: 28px;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+            padding: 42px 38px 34px;
+            animation: riseIn 0.6s cubic-bezier(.19, 1, .22, 1);
+        }
+
+        @@keyframes riseIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--leaf-bright), var(--leaf-accent));
+            color: #04140f;
+            font-weight: 800;
+            font-size: 26px;
+            letter-spacing: 0.03em;
+            padding: 10px 24px;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+
+        h1.title {
+            font-weight: 800;
+            font-size: 26px;
+            margin: 14px 0 2px;
+            background: linear-gradient(135deg, #14532d, #0e7490);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        p.subtitle {
+            color: #4b5563;
+            font-size: 15px;
+            margin-bottom: 26px;
+            font-weight: 500;
+        }
+
+        .dropzone {
+            border: 2px dashed #b7d9c6;
+            border-radius: 20px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(240, 253, 244, 0.6);
+            position: relative;
+        }
+        .dropzone:hover, .dropzone.drag-over {
+            border-color: var(--leaf-bright);
+            background: rgba(220, 252, 231, 0.85);
+            transform: scale(1.01);
+        }
+        .dropzone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .dz-icon { font-size: 40px; line-height: 1; margin-bottom: 8px; transition: transform 0.25s ease; }
+        .dropzone:hover .dz-icon { transform: translateY(-4px) scale(1.05); }
+        .dz-text { color: #166534; font-weight: 600; font-size: 15px; }
+        .dz-hint { color: #6b7280; font-size: 12.5px; margin-top: 2px; }
+
+        .preview-wrap {
+            display: none;
+            margin-top: 16px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .preview-wrap img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+
+        .btn-diagnose {
+            width: 100%;
+            margin-top: 18px;
+            border: none;
+            padding: 13px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 15.5px;
+            letter-spacing: 0.02em;
+            color: #04140f;
+            background: linear-gradient(135deg, var(--leaf-bright), var(--leaf-accent));
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 10px 24px -8px rgba(34, 197, 94, 0.55);
+        }
+        .btn-diagnose:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -8px rgba(34, 197, 94, 0.65); color: #04140f; }
+        .btn-diagnose:active { transform: translateY(0); }
+
+        .alert-modern {
+            border-radius: 14px;
+            border: none;
+            background: #fef2f2;
+            color: #991b1b;
+            font-weight: 500;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+
+        .result-card {
+            margin-top: 28px;
+            border-radius: 20px;
+            padding: 24px;
+            background: linear-gradient(145deg, #ffffff, #f0fdf4);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            animation: riseIn 0.5s ease;
+        }
+        .result-card.is-warning {
+            background: linear-gradient(145deg, #ffffff, #fff7ed);
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+
+        .result-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .result-emoji {
+            width: 48px; height: 48px; min-width: 48px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 14px; font-size: 24px;
+            background: rgba(34, 197, 94, 0.15);
+        }
+        .result-card.is-warning .result-emoji { background: rgba(245, 158, 11, 0.18); }
+
+        .result-disease { font-size: 19px; font-weight: 700; color: #14532d; margin: 0; }
+        .result-card.is-warning .result-disease { color: #92400e; }
+        .result-status { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: #16a34a; }
+        .result-card.is-warning .result-status { color: #d97706; }
+
+        .confidence-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .confidence-track { height: 10px; border-radius: 999px; background: #e5e7eb; overflow: hidden; }
+        .confidence-fill {
+            height: 100%; border-radius: 999px; width: 0%;
+            background: linear-gradient(90deg, var(--leaf-bright), var(--leaf-accent));
+            transition: width 1.1s cubic-bezier(.19, 1, .22, 1);
+        }
+        .result-card.is-warning .confidence-fill { background: linear-gradient(90deg, var(--leaf-warn), #fbbf24); }
+
+        .treatment-box {
+            margin-top: 18px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #374151;
+            border-left: 4px solid var(--leaf-bright);
+        }
+        .result-card.is-warning .treatment-box { border-left-color: var(--leaf-warn); }
+        .treatment-box strong { display: block; margin-bottom: 4px; color: #14532d; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .result-card.is-warning .treatment-box strong { color: #92400e; }
+
+        footer.app-footer {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.65);
+            font-family: 'Space Mono', monospace;
+        }
+        footer.app-footer .credit {
+            display: block;
+            margin-top: 4px;
+            font-size: 11.5px;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 37, 26, 0.82);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 18px;
+            color: #ecfdf5;
+        }
+        .loading-overlay.active { display: flex; }
+        .spinner {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.25);
+            border-top-color: var(--leaf-bright);
+            animation: spin 0.9s linear infinite;
+        }
+        @@keyframes spin { to { transform: rotate(360deg); } }
+        .loading-overlay p { font-weight: 600; letter-spacing: 0.03em; }
+
+        /* Tab navigation - shared across all pages */
+        .tab-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .tab-link {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .tab-link:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
+        .tab-link.active {
+            background: linear-gradient(135deg, var(--leaf-bright), var(--leaf-accent));
+            color: #04140f;
+            border-color: transparent;
+        }
+        .tab-spacer { flex: 1; min-width: 8px; }
+        .nav-user {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 2px;
+            white-space: nowrap;
+        }
+        .tab-link-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .tab-link-btn:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
+
+        /* Form controls - used by Register/Login, the file dropzone above is the only
+           input the original design styled, so these are new but match its aesthetic. */
+        .form-group { margin-bottom: 16px; }
+        .card-box .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 13.5px;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .card-box .form-control,
+        .card-box .form-select {
+            border: 2px solid #d1e7dd;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 14.5px;
+            width: 100%;
+        }
+        .card-box .form-control:focus,
+        .card-box .form-select:focus {
+            border-color: var(--leaf-bright);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+            outline: none;
+        }
+        .card-box .text-danger { display: block; font-size: 12.5px; margin-top: 4px; color: #dc2626; }
+        .card-box .validation-summary-errors ul {
+            list-style: none;
+            margin: 0;
+            padding: 14px 16px;
+            background: #fef2f2;
+            border-radius: 14px;
+            color: #991b1b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .card-box .validation-summary-errors { margin-bottom: 18px; }
+        .form-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #166534;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .form-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Please wait&hellip;</p>
+    </div>
+
+    <div class="shell">
+        <nav class="tab-nav">
+            <a href="/Home/Index" class="tab-link @(IsActive("/Home") || currentPath == "/" ? "active" : "")">🌿 Leaf Diagnosis</a>
+            <a href="/Advisory" class="tab-link @(IsActive("/Advisory") ? "active" : "")">🌦️ Crop Advisories</a>
+            <span class="tab-spacer"></span>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <span class="nav-user">👤 @User.Identity.Name</span>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                    <button type="submit" class="tab-link-btn">Logout</button>
+                </form>
+            }
+            else
+            {
+                <a href="/Account/Login" class="tab-link @(IsActive("/Account/Login") ? "active" : "")">Login</a>
+                <a href="/Account/Register" class="tab-link @(IsActive("/Account/Register") ? "active" : "")">Register</a>
+            }
+        </nav>
+
+        @RenderBody()
+
+        <footer class="app-footer">
+            🌱 Powered by ML.NET
+            <span class="credit">Built by Manager M&amp;E &amp; Manager IT</span>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -4,6 +4,8 @@
     <PackageReference Include="Microsoft.ML.Vision" Version="3.0.1" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.3.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.18" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.18" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LeafUpload.Core\LeafUpload.Core.csproj" />

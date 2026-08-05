@@ -10,6 +10,11 @@ obj/
 Thumbs.db
 .DS_Store
 
+## Local dev SQLite database - never ship real farmer data in the repo
+LeafUpload.Web/*.db
+LeafUpload.Web/*.db-shm
+LeafUpload.Web/*.db-wal
+
 ## Claude Code local settings
 .claude/settings.local.json
 

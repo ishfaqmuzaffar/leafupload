@@ -1,0 +1,51 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    var crops = ViewBag.Crops as IReadOnlyList<string> ?? new List<string>();
+}
+
+<div class="card-box">
+    <span class="brand-badge">🌿 JKCIP/HADP</span>
+    <h1 class="title">Register Your Farm</h1>
+    <p class="subtitle">Create an account and tell us about your farm to start receiving crop advisories.</p>
+
+    <div asp-validation-summary="All" class="validation-summary-errors"></div>
+
+    <form asp-action="Register" method="post">
+        <div class="form-group">
+            <label asp-for="Username" class="form-label"></label>
+            <input asp-for="Username" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="ConfirmPassword" class="form-label"></label>
+            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="PlaceName" class="form-label"></label>
+            <input asp-for="PlaceName" class="form-control" placeholder="e.g. Anantnag" />
+            <span asp-validation-for="PlaceName" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="CropType" class="form-label"></label>
+            <select asp-for="CropType" class="form-select">
+                <option value="">Select a crop&hellip;</option>
+                @foreach (var crop in crops)
+                {
+                    <option value="@crop">@crop</option>
+                }
+            </select>
+            <span asp-validation-for="CropType" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn-diagnose">🌾 Register Farm</button>
+    </form>
+
+    <a href="/Account/Login" class="form-link">Already have an account? Log in</a>
+</div>
