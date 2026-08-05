@@ -12,10 +12,12 @@ namespace LeafUpload.Web.Controllers
     public class AccountController : Controller
     {
         private readonly IFarmerAuthService _authService;
+        private readonly IWeatherService _weatherService;
 
-        public AccountController(IFarmerAuthService authService)
+        public AccountController(IFarmerAuthService authService, IWeatherService weatherService)
         {
             _authService = authService;
+            _weatherService = weatherService;
         }
 
         [HttpGet("Register")]
@@ -34,12 +36,22 @@ namespace LeafUpload.Web.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            var placeName = model.PlaceName.Trim();
+            var location = await _weatherService.GeocodeAsync(placeName);
+            if (location == null)
+            {
+                ModelState.AddModelError(nameof(model.PlaceName),
+                    "Couldn't find that location - try adding a district or state, e.g. \"Anantnag, Jammu and Kashmir\".");
+                return View(model);
+            }
+
             var farm = new Farm
             {
-                PlaceName = model.PlaceName.Trim(),
+                PlaceName = placeName,
                 CropType = model.CropType,
-                // Geocoding (Latitude/Longitude/ResolvedLocationName) is wired up in a
-                // later phase; the farm is saved with just the raw place name for now.
+                Latitude = location.Latitude,
+                Longitude = location.Longitude,
+                ResolvedLocationName = location.ResolvedName,
             };
 
             var result = await _authService.RegisterAsync(model.Username, model.Password, farm);

@@ -4,6 +4,7 @@ using LeafUpload.Infrastructure.Auth;
 using LeafUpload.Infrastructure.Persistence;
 using LeafUpload.Infrastructure.Rules;
 using LeafUpload.Infrastructure.ML;
+using LeafUpload.Infrastructure.Weather;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,12 @@ builder.Services.AddScoped<IFarmerRepository, EfFarmerRepository>();
 builder.Services.AddScoped<IAdvisoryRepository, EfAdvisoryRepository>();
 builder.Services.AddScoped<IFarmerAuthService, FarmerAuthService>();
 builder.Services.AddSingleton<IPasswordHasher<Farmer>, PasswordHasher<Farmer>>();
+
+builder.Services.AddHttpClient("OpenMeteoGeocoding", (sp, c) =>
+    c.BaseAddress = new Uri(sp.GetRequiredService<IConfiguration>()["OpenMeteo:GeocodingBaseUrl"]!));
+builder.Services.AddHttpClient("OpenMeteoForecast", (sp, c) =>
+    c.BaseAddress = new Uri(sp.GetRequiredService<IConfiguration>()["OpenMeteo:ForecastBaseUrl"]!));
+builder.Services.AddScoped<IWeatherService, OpenMeteoWeatherService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
