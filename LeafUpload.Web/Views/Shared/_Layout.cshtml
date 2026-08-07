@@ -1,9 +1,11 @@
 @{
     var currentPath = Context.Request.Path.Value ?? "";
     bool IsActive(string prefix) => currentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+    var currentQuery = Context.Request.QueryString.Value ?? "";
+    string LangSwitchUrl(string culture) => $"/SetLanguage?culture={culture}&returnUrl={Uri.EscapeDataString(currentPath + currentQuery)}";
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@T.CurrentCulture" dir="@(T.IsRtl ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,17 +13,23 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Space+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Space+Mono&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
+            /* Palette aligned with the official JKCIP portal (jkcip.jk.gov.in):
+               deep green for brand/structure, orange for calls-to-action. */
             --leaf-dark: #06251a;
             --leaf-mid: #0f5132;
             --leaf-bright: #22c55e;
             --leaf-accent: #34d9c4;
             --leaf-warn: #f59e0b;
             --leaf-danger: #ef4444;
-            --glass: rgba(255, 255, 255, 0.92);
+            --glass: rgba(255, 255, 255, 0.96);
+            --header-green-1: #0f5132;
+            --header-green-2: #14532d;
+            --cta-orange-1: #f97316;
+            --cta-orange-2: #fb923c;
         }
 
         * { box-sizing: border-box; }
@@ -35,38 +43,32 @@
             font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            padding: 32px 16px;
-            background: radial-gradient(circle at 15% 20%, #14532d 0%, transparent 45%),
-                        radial-gradient(circle at 85% 15%, #0e7490 0%, transparent 40%),
-                        radial-gradient(circle at 50% 90%, #166534 0%, transparent 50%),
-                        linear-gradient(160deg, var(--leaf-dark), #082f2a 55%, #04140f);
-            background-size: 200% 200%;
-            animation: driftBg 18s ease-in-out infinite;
+            background: #f4f8f6;
             overflow-x: hidden;
             position: relative;
         }
+        html[lang="hi"] body { font-family: 'Noto Sans Devanagari', 'Poppins', 'Segoe UI', sans-serif; }
+        html[lang="ur"] body { font-family: 'Noto Nastaliq Urdu', 'Poppins', 'Segoe UI', sans-serif; font-size: 1.05em; line-height: 1.9; }
+        html[dir="rtl"] .locate-row,
+        html[dir="rtl"] .hero-cta-row,
+        html[dir="rtl"] .advisory-footer,
+        html[dir="rtl"] .cta-banner,
+        html[dir="rtl"] .alert-title-row,
+        html[dir="rtl"] .result-head,
+        html[dir="rtl"] .farm-card-header { direction: rtl; }
+        html[dir="rtl"] .alert-actions,
+        html[dir="rtl"] .symptoms-box ul { padding-left: 0; padding-right: 18px; }
+        html[dir="rtl"] .treatment-box,
+        html[dir="rtl"] .symptoms-box { border-left: none; border-right: 4px solid var(--leaf-bright); }
+        html[dir="rtl"] .symptoms-box { border-right-color: #3b82f6; }
 
-        @@keyframes driftBg {
-            0%, 100% { background-position: 0% 0%, 100% 0%, 50% 100%, 0% 0%; }
-            50% { background-position: 10% 15%, 90% 10%, 45% 85%, 100% 100%; }
-        }
-
-        .blob {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.35;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .blob-1 { width: 340px; height: 340px; background: var(--leaf-bright); top: -80px; left: -80px; animation: floatSlow 14s ease-in-out infinite; }
-        .blob-2 { width: 280px; height: 280px; background: var(--leaf-accent); bottom: -60px; right: -60px; animation: floatSlow 16s ease-in-out infinite reverse; }
-
-        @@keyframes floatSlow {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(30px, -20px) scale(1.08); }
+        .page-content {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 32px 16px;
         }
 
         .shell {
@@ -74,13 +76,15 @@
             z-index: 1;
             width: 100%;
             max-width: 620px;
+            transition: max-width 0.2s ease;
         }
+        .shell.shell-wide { max-width: 900px; }
 
         .card-box {
             background: var(--glass);
-            backdrop-filter: blur(18px);
-            border-radius: 28px;
-            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+            border: 1px solid rgba(15, 81, 50, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 12px 32px -16px rgba(15, 81, 50, 0.25);
             padding: 42px 38px 34px;
             animation: riseIn 0.6s cubic-bezier(.19, 1, .22, 1);
         }
@@ -165,12 +169,12 @@
             font-weight: 700;
             font-size: 15.5px;
             letter-spacing: 0.02em;
-            color: #04140f;
-            background: linear-gradient(135deg, var(--leaf-bright), var(--leaf-accent));
+            color: #fff;
+            background: linear-gradient(135deg, var(--cta-orange-1), var(--cta-orange-2));
             transition: transform 0.15s ease, box-shadow 0.15s ease;
-            box-shadow: 0 10px 24px -8px rgba(34, 197, 94, 0.55);
+            box-shadow: 0 10px 24px -8px rgba(249, 115, 22, 0.55);
         }
-        .btn-diagnose:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -8px rgba(34, 197, 94, 0.65); color: #04140f; }
+        .btn-diagnose:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -8px rgba(249, 115, 22, 0.65); color: #fff; }
         .btn-diagnose:active { transform: translateY(0); }
 
         .alert-modern {
@@ -232,25 +236,68 @@
         .treatment-box strong { display: block; margin-bottom: 4px; color: #14532d; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; }
         .result-card.is-warning .treatment-box strong { color: #92400e; }
 
-        footer.app-footer {
+        .symptoms-box {
+            margin-top: 18px;
+            background: rgba(239, 246, 255, 0.7);
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #374151;
+            border-left: 4px solid #3b82f6;
+        }
+        .symptoms-box strong { display: block; margin-bottom: 4px; color: #1e40af; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .symptoms-hint { font-size: 12px; color: #6b7280; margin: 0 0 8px; font-style: italic; }
+        .symptoms-box ul { margin: 0; padding-left: 18px; }
+        .symptoms-box li { margin-bottom: 4px; }
+
+        .kkg-box {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px dashed rgba(15, 81, 50, 0.2);
+            text-align: center;
+        }
+        .kkg-prompt { font-size: 13px; color: #4b5563; margin: 0 0 10px; }
+        a.kkg-btn { display: inline-block; width: auto; margin-top: 0; text-decoration: none; padding: 12px 22px; }
+
+        /* Leaf Diagnosis page - two-column layout on wide screens so the form
+           doesn't stretch thin across the full shell width. */
+        .diag-layout { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: start; }
+        @@media (min-width: 720px) {
+            .diag-layout { grid-template-columns: 1.4fr 1fr; }
+        }
+        .diag-side { display: flex; flex-direction: column; gap: 14px; }
+        .diag-tip-list { margin: 0; padding-left: 18px; font-size: 12.5px; color: #4b5563; line-height: 1.6; }
+        .diag-tip-list li { margin-bottom: 4px; }
+        html[dir="rtl"] .diag-tip-list { padding-left: 0; padding-right: 18px; }
+
+        /* Generic two-column layout - same pattern as .diag-layout, reused by
+           Login/Register so their shell width matches the rest of the site
+           without stretching narrow form fields across the full 900px shell. */
+        .side-layout { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: start; }
+        @@media (min-width: 720px) {
+            .side-layout { grid-template-columns: 1.3fr 1fr; }
+        }
+        .side-col { display: flex; flex-direction: column; gap: 14px; }
+
+footer.app-footer {
             text-align: center;
             margin-top: 22px;
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.65);
+            color: #6b7280;
             font-family: 'Space Mono', monospace;
         }
         footer.app-footer .credit {
             display: block;
             margin-top: 4px;
             font-size: 11.5px;
-            color: rgba(255, 255, 255, 0.45);
+            color: #9ca3af;
         }
 
         .loading-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(6, 37, 26, 0.82);
+            background: rgba(6, 37, 26, 0.85);
             backdrop-filter: blur(4px);
             z-index: 999;
             align-items: center;
@@ -260,6 +307,8 @@
             color: #ecfdf5;
         }
         .loading-overlay.active { display: flex; }
+        .loading-overlay.boot { pointer-events: none; }
+        .loading-overlay .boot-badge { font-size: 20px; padding: 8px 20px; animation: riseIn 0.5s ease; }
         .spinner {
             width: 54px; height: 54px;
             border-radius: 50%;
@@ -270,35 +319,75 @@
         @@keyframes spin { to { transform: rotate(360deg); } }
         .loading-overlay p { font-weight: 600; letter-spacing: 0.03em; }
 
-        /* Tab navigation - shared across all pages */
+        /* Site header - full-width solid green bar, shared across all pages,
+           styled after the official JKCIP portal's header/nav. */
+        .site-header {
+            width: 100%;
+            background: linear-gradient(135deg, var(--header-green-1), var(--header-green-2));
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+        }
+        .site-header-inner {
+            width: 100%;
+            max-width: 620px;
+            margin: 0 auto;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            transition: max-width 0.2s ease;
+        }
+        .site-header-inner.shell-wide { max-width: 900px; }
+
         .tab-nav {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 18px;
             flex-wrap: wrap;
+            width: 100%;
+        }
+        .site-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 15.5px;
+            text-decoration: none;
+            white-space: nowrap;
+            padding-right: 12px;
+            margin-right: 2px;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        html[dir="rtl"] .site-brand {
+            border-right: none;
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            padding-right: 0;
+            padding-left: 12px;
+            margin-right: 0;
+            margin-left: 2px;
         }
         .tab-link {
             color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent;
+            border: 1px solid transparent;
             transition: all 0.2s ease;
             white-space: nowrap;
         }
-        .tab-link:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
+        .tab-link:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
         .tab-link.active {
-            background: linear-gradient(135deg, var(--leaf-bright), var(--leaf-accent));
-            color: #04140f;
-            border-color: transparent;
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
         }
         .tab-spacer { flex: 1; min-width: 8px; }
         .nav-user {
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.75);
             font-size: 13px;
             font-weight: 600;
             margin-right: 2px;
@@ -306,8 +395,8 @@
         }
         .tab-link-btn {
             background: none;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 600;
             font-size: 14px;
             padding: 8px 16px;
@@ -315,7 +404,36 @@
             cursor: pointer;
             font-family: inherit;
         }
-        .tab-link-btn:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
+        .tab-link-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+        /* Login/Register get the portal's signature orange pill treatment. */
+        a.tab-link.tab-link-cta {
+            background: linear-gradient(135deg, var(--cta-orange-1), var(--cta-orange-2));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 12px -4px rgba(249, 115, 22, 0.6);
+        }
+        a.tab-link.tab-link-cta:hover { color: #fff; filter: brightness(1.05); }
+
+        .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            padding: 3px;
+        }
+        .lang-link {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .lang-link:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
+        .lang-link.active { background: #fff; color: #0f5132; }
 
         /* Form controls - used by Register/Login, the file dropzone above is the only
            input the original design styled, so these are new but match its aesthetic. */
@@ -363,45 +481,410 @@
             text-decoration: none;
         }
         .form-link:hover { text-decoration: underline; }
+
+        /* Location map picker - used by Register */
+        .locate-row { display: flex; gap: 8px; }
+        .locate-row .form-control { flex: 1; }
+        .btn-locate {
+            white-space: nowrap;
+            border: 2px solid #b7d9c6;
+            background: rgba(240, 253, 244, 0.6);
+            color: #166534;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 0 16px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        .btn-locate:hover { background: rgba(220, 252, 231, 0.85); border-color: var(--leaf-bright); }
+        .btn-locate:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-geolocate {
+            display: block;
+            margin-top: 8px;
+            border: none;
+            background: none;
+            color: #0e7490;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 2px 0;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .btn-geolocate:hover { color: #155e75; }
+        .btn-geolocate:disabled { opacity: 0.6; cursor: not-allowed; }
+        .locate-status { font-size: 12.5px; color: #6b7280; margin-top: 6px; min-height: 16px; }
+        #farmMap { display: none; height: 220px; border-radius: 16px; margin-top: 10px; border: 2px solid #d1e7dd; }
+        .map-hint { display: none; font-size: 12px; color: #6b7280; margin-top: 6px; }
+
+        /* Crop Advisories page */
+        .farm-block { margin-top: 26px; animation: riseIn 0.5s ease; }
+        .farm-block:first-of-type { margin-top: 28px; }
+        .farm-card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 20px;
+            border-radius: 20px 20px 0 0;
+            background: linear-gradient(135deg, #14532d, #0e7490);
+        }
+        .farm-crop-icon {
+            width: 52px; height: 52px; min-width: 52px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.18);
+        }
+        .farm-crop-name { color: #fff; font-weight: 700; font-size: 18px; margin: 0; }
+        .farm-location { color: rgba(255, 255, 255, 0.8); font-size: 13px; margin: 2px 0 0; }
+        .farm-alert-count {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .farm-body {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 0 0 20px 20px;
+            padding: 20px;
+            border: 1px solid rgba(20, 83, 45, 0.12);
+            border-top: none;
+        }
+
+        .weather-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .weather-day {
+            flex: 1 0 82px;
+            min-width: 82px;
+            text-align: center;
+            background: rgba(240, 253, 244, 0.7);
+            border: 1px solid rgba(20, 83, 45, 0.1);
+            border-radius: 14px;
+            padding: 10px 6px;
+        }
+        .weather-day .wd-date { font-size: 11px; font-weight: 700; color: #14532d; text-transform: uppercase; letter-spacing: 0.03em; }
+        .weather-day .wd-icon { font-size: 24px; margin: 6px 0 4px; }
+        .weather-day .wd-temp { font-size: 12.5px; font-weight: 600; color: #374151; }
+        .weather-day .wd-precip { font-size: 11px; color: #0e7490; margin-top: 2px; }
+
+        .alert-card {
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            border: 1px solid;
+            display: flex;
+            gap: 14px;
+        }
+        .alert-card:last-child { margin-bottom: 0; }
+        .alert-card .alert-icon { font-size: 24px; line-height: 1; }
+        .alert-card .alert-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+        .alert-card .alert-title { font-weight: 700; font-size: 15px; margin: 0; }
+        .alert-card .alert-timing {
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+            padding: 2px 10px; border-radius: 999px; background: rgba(0,0,0,0.08);
+        }
+        .alert-card .alert-message { font-size: 14px; color: #374151; margin: 0 0 8px; }
+        .alert-card .alert-actions { margin: 0; padding-left: 18px; font-size: 13px; color: #4b5563; }
+        .alert-card .alert-actions li { margin-bottom: 2px; }
+
+        .alert-card.sev-critical { background: #fef2f2; border-color: rgba(239, 68, 68, 0.35); }
+        .alert-card.sev-critical .alert-title { color: #991b1b; }
+        .alert-card.sev-critical .alert-timing { background: rgba(239, 68, 68, 0.15); color: #991b1b; }
+        .alert-card.sev-warning { background: #fff7ed; border-color: rgba(245, 158, 11, 0.35); }
+        .alert-card.sev-warning .alert-title { color: #92400e; }
+        .alert-card.sev-warning .alert-timing { background: rgba(245, 158, 11, 0.18); color: #92400e; }
+        .alert-card.sev-caution { background: #fefce8; border-color: rgba(202, 138, 4, 0.3); }
+        .alert-card.sev-caution .alert-title { color: #854d0e; }
+        .alert-card.sev-caution .alert-timing { background: rgba(202, 138, 4, 0.15); color: #854d0e; }
+        .alert-card.sev-info { background: #eff6ff; border-color: rgba(59, 130, 246, 0.3); }
+        .alert-card.sev-info .alert-title { color: #1e40af; }
+        .alert-card.sev-info .alert-timing { background: rgba(59, 130, 246, 0.15); color: #1e40af; }
+
+        .advisory-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        .advisory-meta {
+            font-size: 11.5px;
+            color: #9ca3af;
+        }
+        .btn-push {
+            white-space: nowrap;
+            border: none;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px -6px rgba(99, 102, 241, 0.55);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-push:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -6px rgba(99, 102, 241, 0.65); }
+        .btn-push:active { transform: translateY(0); }
+
+        /* Landing / portal page */
+        .hero-title {
+            font-weight: 800;
+            font-size: 32px;
+            line-height: 1.15;
+            margin: 18px 0 10px;
+            background: linear-gradient(135deg, #14532d, #0e7490);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .hero-subtitle { color: #4b5563; font-size: 15.5px; line-height: 1.6; max-width: 720px; margin-bottom: 22px; }
+
+        .hero-cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+        .hero-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 14.5px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        a.hero-cta-btn.hero-cta-secondary,
+        button.hero-cta-btn.hero-cta-secondary {
+            color: #14532d;
+            background: #ffffff;
+            border: 2px solid #b7d9c6;
+        }
+        button.hero-cta-btn.hero-cta-secondary { font: inherit; cursor: pointer; }
+        a.hero-cta-btn.hero-cta-secondary:hover,
+        button.hero-cta-btn.hero-cta-secondary:hover { border-color: var(--leaf-bright); background: rgba(220, 252, 231, 0.5); }
+        .hero-cta-btn.btn-diagnose { width: auto; margin-top: 0; }
+
+        .share-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin: 30px 0 8px;
+        }
+        .stat-tile {
+            background: linear-gradient(145deg, #ffffff, #f0fdf4);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 18px;
+            padding: 18px 16px;
+            text-align: center;
+        }
+        .stat-tile-alert { background: linear-gradient(145deg, #ffffff, #fff7ed); border-color: rgba(245, 158, 11, 0.35); }
+        .stat-value { font-size: 30px; font-weight: 800; color: #14532d; line-height: 1.1; }
+        .stat-tile-alert .stat-value { color: #92400e; }
+        .stat-label { font-size: 12.5px; color: #4b5563; font-weight: 600; margin-top: 4px; }
+
+        .about-jkcip {
+            background: linear-gradient(145deg, #f0fdf4, #ffffff);
+            border: 1px solid rgba(15, 81, 50, 0.12);
+            border-radius: 18px;
+            padding: 22px 24px;
+        }
+        .about-jkcip p { font-size: 14px; color: #374151; line-height: 1.7; margin: 0; }
+        .about-jkcip a { color: #0f5132; font-weight: 700; }
+        .jkcip-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 18px 0 6px; }
+        .jkcip-stat { text-align: center; padding: 10px; }
+        .jkcip-stat-value { font-size: 26px; font-weight: 800; color: var(--cta-orange-1); line-height: 1.1; }
+        .jkcip-stat-label { font-size: 12px; color: #4b5563; font-weight: 600; margin-top: 4px; line-height: 1.4; }
+        .jkcip-stat-source { font-size: 11px !important; color: #9ca3af !important; font-style: italic; margin-top: 10px !important; }
+
+        .focus-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 16px; }
+        .focus-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 81, 50, 0.12);
+            border-radius: 16px;
+            padding: 20px 18px;
+        }
+        .focus-icon {
+            width: 48px; height: 48px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--header-green-1), var(--header-green-2));
+        }
+        .focus-card h4 { font-size: 14.5px; font-weight: 700; color: #14532d; margin: 0 0 6px; }
+        .focus-card p { font-size: 12.5px; color: #4b5563; margin: 0; line-height: 1.5; }
+
+        .section-heading { margin: 38px 0 16px; }
+        .section-heading h2 { font-size: 20px; font-weight: 800; color: #14532d; margin: 0 0 4px; }
+        .section-heading p { font-size: 13.5px; color: #6b7280; margin: 0; }
+
+        .chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+        .chart-panel {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(20, 83, 45, 0.12);
+            border-radius: 18px;
+            padding: 18px 20px 22px;
+        }
+        .chart-panel h3 { font-size: 14.5px; font-weight: 700; color: #14532d; margin: 0 0 14px; }
+        .chart-canvas-wrap { position: relative; height: 260px; }
+        .chart-empty {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
+        .steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .step-item {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(20, 83, 45, 0.1);
+            border-radius: 16px;
+            padding: 20px 18px;
+            text-align: center;
+        }
+        .step-icon {
+            width: 52px; height: 52px; margin: 0 auto 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            border-radius: 16px;
+            background: rgba(34, 197, 94, 0.15);
+        }
+        .step-item h4 { font-size: 14.5px; font-weight: 700; color: #14532d; margin: 0 0 6px; }
+        .step-item p { font-size: 13px; color: #4b5563; margin: 0; line-height: 1.5; }
+
+        .crop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        .crop-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(240, 253, 244, 0.7);
+            border: 1px solid rgba(20, 83, 45, 0.12);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #14532d;
+        }
+        .crop-chip-icon { font-size: 20px; }
+
+        .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+        .risk-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(20, 83, 45, 0.1);
+            border-radius: 16px;
+            padding: 18px;
+        }
+        .risk-icon { font-size: 26px; margin-bottom: 8px; }
+        .risk-card h4 { font-size: 14px; font-weight: 700; color: #14532d; margin: 0 0 6px; }
+        .risk-card p { font-size: 12.5px; color: #4b5563; margin: 0; line-height: 1.5; }
+
+        .cta-banner {
+            margin-top: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, #14532d, #0e7490);
+            border-radius: 20px;
+            padding: 26px 28px;
+        }
+        .cta-banner h3 { color: #fff; font-size: 19px; font-weight: 800; margin: 0 0 4px; }
+        .cta-banner p { color: rgba(255, 255, 255, 0.8); font-size: 13.5px; margin: 0; }
+        .cta-banner-btn { width: auto; margin-top: 0; white-space: nowrap; }
     </style>
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-
-    <div class="loading-overlay" id="loadingOverlay">
+    <noscript><style>.loading-overlay { display: none !important; }</style></noscript>
+    <div class="loading-overlay active boot" id="loadingOverlay">
+        <span class="brand-badge boot-badge">🌿 KrishiMitra AI</span>
         <div class="spinner"></div>
-        <p id="loadingText">Please wait&hellip;</p>
+        <p id="loadingText">@T.S("nav.loading")</p>
     </div>
 
-    <div class="shell">
-        <nav class="tab-nav">
-            <a href="/Home/Index" class="tab-link @(IsActive("/Home") || currentPath == "/" ? "active" : "")">🌿 Leaf Diagnosis</a>
-            <a href="/Advisory" class="tab-link @(IsActive("/Advisory") ? "active" : "")">🌦️ Crop Advisories</a>
-            <span class="tab-spacer"></span>
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <span class="nav-user">👤 @User.Identity.Name</span>
-                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
-                    <button type="submit" class="tab-link-btn">Logout</button>
-                </form>
-            }
-            else
-            {
-                <a href="/Account/Login" class="tab-link @(IsActive("/Account/Login") ? "active" : "")">Login</a>
-                <a href="/Account/Register" class="tab-link @(IsActive("/Account/Register") ? "active" : "")">Register</a>
-            }
-        </nav>
+    <header class="site-header">
+        <div class="site-header-inner @(ViewData["WideShell"] as bool? == true ? "shell-wide" : "")">
+            <nav class="tab-nav">
+                <a href="/" class="site-brand">🌿 KrishiMitra AI</a>
+                <a href="/" class="tab-link @(currentPath == "/" ? "active" : "")">🏠 @T.S("nav.home")</a>
+                <a href="/Advisory" class="tab-link @(IsActive("/Advisory") ? "active" : "")">🌦️ @T.S("nav.advisories")</a>
+                <a href="/Home/Index" class="tab-link @(IsActive("/Home") ? "active" : "")">🌿 @T.S("nav.diagnosis")</a>
+                <div class="lang-switch" title="@T.S("nav.language")">
+                    <a href="@LangSwitchUrl("en")" class="lang-link @(T.CurrentCulture == "en" ? "active" : "")">EN</a>
+                    <a href="@LangSwitchUrl("hi")" class="lang-link @(T.CurrentCulture == "hi" ? "active" : "")">हिं</a>
+                    <a href="@LangSwitchUrl("ur")" class="lang-link @(T.CurrentCulture == "ur" ? "active" : "")">اردو</a>
+                </div>
+                <span class="tab-spacer"></span>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="nav-user">👤 @User.Identity.Name</span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                        <button type="submit" class="tab-link-btn">@T.S("nav.logout")</button>
+                    </form>
+                }
+                else
+                {
+                    <a href="/Account/Login" class="tab-link tab-link-cta @(IsActive("/Account/Login") ? "active" : "")">@T.S("nav.login")</a>
+                    <a href="/Account/Register" class="tab-link tab-link-cta @(IsActive("/Account/Register") ? "active" : "")">@T.S("nav.register")</a>
+                }
+            </nav>
+        </div>
+    </header>
 
-        @RenderBody()
+    <div class="page-content">
+        <div class="shell @(ViewData["WideShell"] as bool? == true ? "shell-wide" : "")">
+            @RenderBody()
 
-        <footer class="app-footer">
-            🌱 Powered by ML.NET
-            <span class="credit">Built by Manager M&amp;E &amp; Manager IT</span>
-        </footer>
+            <footer class="app-footer">
+                🌱 @T.S("footer.poweredBy")
+                <span class="credit">@T.S("footer.credit")</span>
+            </footer>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const overlay = document.getElementById('loadingOverlay');
+            const bootStart = Date.now();
+            const MIN_BOOT_MS = 400;
+
+            function hideBootOverlay() {
+                const elapsed = Date.now() - bootStart;
+                setTimeout(() => overlay.classList.remove('active', 'boot'), Math.max(0, MIN_BOOT_MS - elapsed));
+            }
+
+            if (document.readyState === 'complete') {
+                hideBootOverlay();
+            } else {
+                window.addEventListener('load', hideBootOverlay);
+            }
+
+            // Give instant feedback on internal nav clicks - full page loads are
+            // otherwise silent until the next page starts painting. Unlike the boot
+            // splash this one *should* block input - the page is about to be replaced.
+            document.querySelectorAll('a.tab-link, a.form-link, a.lang-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (link.target === '_blank') return;
+                    document.getElementById('loadingText').textContent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("nav.loading")));
+                    overlay.classList.remove('boot');
+                    overlay.classList.add('active');
+                });
+            });
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -5,6 +5,6 @@ namespace LeafUpload.Core.Abstractions
 {
     public interface IAdvisoryGenerator
     {
-        Task<string> GenerateAdvisoryAsync(string cropType, string placeName, WeatherForecast forecast);
+        Task<AdvisoryResult> GenerateAdvisoryAsync(string cropType, string placeName, WeatherForecast forecast);
     }
 }

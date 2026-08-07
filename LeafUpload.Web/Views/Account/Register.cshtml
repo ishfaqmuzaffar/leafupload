@@ -1,51 +1,227 @@
+@using LeafUpload.Core.Models
 @model RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Register · KrishiMitra AI";
+    ViewData["WideShell"] = true;
     var crops = ViewBag.Crops as IReadOnlyList<string> ?? new List<string>();
 }
 
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+}
+
 <div class="card-box">
-    <span class="brand-badge">🌿 JKCIP/HADP</span>
-    <h1 class="title">Register Your Farm</h1>
-    <p class="subtitle">Create an account and tell us about your farm to start receiving crop advisories.</p>
+    <span class="brand-badge">🌿 KrishiMitra AI</span>
+    <h1 class="title">@T.S("register.title")</h1>
+    <p class="subtitle">@T.S("register.subtitle")</p>
 
-    <div asp-validation-summary="All" class="validation-summary-errors"></div>
+    <div class="side-layout">
+        <div>
+            <div asp-validation-summary="All" class="validation-summary-errors"></div>
 
-    <form asp-action="Register" method="post">
-        <div class="form-group">
-            <label asp-for="Username" class="form-label"></label>
-            <input asp-for="Username" class="form-control" autocomplete="username" />
-            <span asp-validation-for="Username" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="Password" class="form-label"></label>
-            <input asp-for="Password" class="form-control" autocomplete="new-password" />
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="ConfirmPassword" class="form-label"></label>
-            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
-            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="PlaceName" class="form-label"></label>
-            <input asp-for="PlaceName" class="form-control" placeholder="e.g. Anantnag" />
-            <span asp-validation-for="PlaceName" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="CropType" class="form-label"></label>
-            <select asp-for="CropType" class="form-select">
-                <option value="">Select a crop&hellip;</option>
-                @foreach (var crop in crops)
-                {
-                    <option value="@crop">@crop</option>
-                }
-            </select>
-            <span asp-validation-for="CropType" class="text-danger"></span>
+            <form asp-action="Register" method="post">
+                <div class="form-group">
+                    <label asp-for="Username" class="form-label">@T.S("field.username")</label>
+                    <input asp-for="Username" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">@T.S("field.password")</label>
+                    <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword" class="form-label">@T.S("field.confirmPassword")</label>
+                    <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PlaceName" class="form-label">@T.S("field.location")</label>
+                    <div class="locate-row">
+                        <input asp-for="PlaceName" class="form-control" placeholder="@T.S("register.placeholderLocation")" id="placeNameInput" />
+                        <button type="button" class="btn-locate" id="locateBtn">@T.S("register.locate")</button>
+                    </div>
+                    <span asp-validation-for="PlaceName" class="text-danger"></span>
+                    <button type="button" class="btn-geolocate" id="geolocateBtn">@T.S("register.useMyLocation")</button>
+                    <div class="locate-status" id="locateStatus"></div>
+                    <div id="farmMap"></div>
+                    <div class="map-hint" id="mapHint">@T.S("register.mapHint")</div>
+                    <input type="hidden" asp-for="Latitude" id="latInput" />
+                    <input type="hidden" asp-for="Longitude" id="lonInput" />
+                    <input type="hidden" asp-for="ResolvedLocationName" id="resolvedNameInput" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="CropType" class="form-label">@T.S("field.cropType")</label>
+                    <select asp-for="CropType" class="form-select">
+                        <option value="">@T.S("register.selectCrop")</option>
+                        @foreach (var crop in crops)
+                        {
+                            <option value="@crop">@CropTaxonomy.NameFor(crop, T.CurrentCulture)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CropType" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn-diagnose">🌾 @T.S("register.button")</button>
+            </form>
+
+            <a href="/Account/Login" class="form-link">@T.S("register.loginLink")</a>
         </div>
 
-        <button type="submit" class="btn-diagnose">🌾 Register Farm</button>
-    </form>
-
-    <a href="/Account/Login" class="form-link">Already have an account? Log in</a>
+        <div class="side-col">
+            <div class="risk-card">
+                <div class="risk-icon">🚀</div>
+                <h4>@T.S("register.sideTitle")</h4>
+                <ul class="diag-tip-list">
+                    <li>@T.S("register.sideTip1")</li>
+                    <li>@T.S("register.sideTip2")</li>
+                    <li>@T.S("register.sideTip3")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        (function () {
+            const MSG = {
+                typeLocationFirst: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.typeLocationFirst"))),
+                searching: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.searching"))),
+                notFoundManualPin: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.notFoundManualPin"))),
+                adjustPin: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.adjustPin"))),
+                searchError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.searchError"))),
+                geoUnsupported: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.geoUnsupported"))),
+                requestingLocation: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.requestingLocation"))),
+                locatedLookingUp: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.locatedLookingUp"))),
+                locatedManualName: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.locatedManualName"))),
+                geoDenied: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.geoDenied"))),
+                geoFailed: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("register.geoFailed"))),
+            };
+            const placeNameInput = document.getElementById('placeNameInput');
+            const locateBtn = document.getElementById('locateBtn');
+            const geolocateBtn = document.getElementById('geolocateBtn');
+            const locateStatus = document.getElementById('locateStatus');
+            const mapEl = document.getElementById('farmMap');
+            const mapHint = document.getElementById('mapHint');
+            const latInput = document.getElementById('latInput');
+            const lonInput = document.getElementById('lonInput');
+            const resolvedNameInput = document.getElementById('resolvedNameInput');
+
+            let map = null;
+            let marker = null;
+
+            function placeMarker(lat, lon) {
+                marker.setLatLng([lat, lon]);
+                latInput.value = lat;
+                lonInput.value = lon;
+            }
+
+            function showMap(lat, lon, zoom) {
+                mapEl.style.display = 'block';
+                mapHint.style.display = 'block';
+
+                if (!map) {
+                    map = L.map('farmMap').setView([lat, lon], zoom);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors',
+                        maxZoom: 18,
+                    }).addTo(map);
+                    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+                    marker.on('dragend', () => {
+                        const pos = marker.getLatLng();
+                        latInput.value = pos.lat;
+                        lonInput.value = pos.lng;
+                    });
+                    // Not every place name resolves via search (even real towns can be
+                    // missing from Open-Meteo's geocoding data) - clicking anywhere on
+                    // the map lets the farmer place the pin manually regardless.
+                    map.on('click', (e) => placeMarker(e.latlng.lat, e.latlng.lng));
+                } else {
+                    map.setView([lat, lon], zoom);
+                    marker.setLatLng([lat, lon]);
+                    map.invalidateSize();
+                }
+
+                latInput.value = lat;
+                lonInput.value = lon;
+            }
+
+            async function locate() {
+                const placeName = placeNameInput.value.trim();
+                if (!placeName) {
+                    locateStatus.textContent = MSG.typeLocationFirst;
+                    return;
+                }
+
+                locateBtn.disabled = true;
+                locateStatus.textContent = MSG.searching;
+
+                try {
+                    const res = await fetch('/Account/GeocodePreview?placeName=' + encodeURIComponent(placeName));
+                    const data = await res.json();
+
+                    if (!data.found) {
+                        locateStatus.textContent = MSG.notFoundManualPin;
+                        resolvedNameInput.value = '';
+                        // Fall back to a broad view (roughly central India) so the farmer
+                        // can still place a pin manually even when text search fails.
+                        showMap(20.5937, 78.9629, 5);
+                        return;
+                    }
+
+                    resolvedNameInput.value = data.resolvedName;
+                    locateStatus.textContent = '📍 ' + data.resolvedName + ' - ' + MSG.adjustPin;
+                    showMap(data.latitude, data.longitude, 13);
+                } catch (err) {
+                    locateStatus.textContent = MSG.searchError;
+                } finally {
+                    locateBtn.disabled = false;
+                }
+            }
+
+            async function useMyLocation() {
+                if (!navigator.geolocation) {
+                    locateStatus.textContent = MSG.geoUnsupported;
+                    return;
+                }
+
+                geolocateBtn.disabled = true;
+                locateStatus.textContent = MSG.requestingLocation;
+
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    latInput.value = latitude;
+                    lonInput.value = longitude;
+                    showMap(latitude, longitude, 14);
+                    locateStatus.textContent = '📍 ' + MSG.locatedLookingUp;
+
+                    try {
+                        const res = await fetch(`/Account/ReverseGeocode?lat=${latitude}&lon=${longitude}`);
+                        const data = await res.json();
+                        if (data.resolvedName) {
+                            resolvedNameInput.value = data.resolvedName;
+                            placeNameInput.value = data.resolvedName;
+                            locateStatus.textContent = '📍 ' + data.resolvedName + ' - ' + MSG.adjustPin;
+                        } else {
+                            locateStatus.textContent = MSG.locatedManualName;
+                        }
+                    } catch (err) {
+                        locateStatus.textContent = MSG.locatedManualName;
+                    } finally {
+                        geolocateBtn.disabled = false;
+                    }
+                }, (error) => {
+                    geolocateBtn.disabled = false;
+                    locateStatus.textContent = error.code === error.PERMISSION_DENIED
+                        ? MSG.geoDenied
+                        : MSG.geoFailed;
+                }, { enableHighAccuracy: true, timeout: 10000 });
+            }
+
+            locateBtn.addEventListener('click', locate);
+            geolocateBtn.addEventListener('click', useMyLocation);
+        })();
+    </script>
+}

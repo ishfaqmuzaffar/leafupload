@@ -1,0 +1,225 @@
+@using LeafUpload.Core.Models
+@using System.Text.Json
+@model LeafUpload.Web.ViewModels.LandingViewModel
+@{
+    ViewData["Title"] = "KrishiMitra AI - Smart Crop Advisory & Leaf Diagnosis Platform";
+    ViewData["WideShell"] = true;
+
+    var cropLabelsJson = JsonSerializer.Serialize(Model.CropCounts.Keys.Select(c => CropTaxonomy.NameFor(c, T.CurrentCulture)));
+    var cropValuesJson = JsonSerializer.Serialize(Model.CropCounts.Values);
+    var alertLabelsJson = JsonSerializer.Serialize(Model.AlertCounts.Keys);
+    var alertValuesJson = JsonSerializer.Serialize(Model.AlertCounts.Values);
+
+    var risks = new (string Icon, string Title, string Body)[]
+    {
+        ("🧊", T.S("landing.riskHailTitle"), T.S("landing.riskHailBody")),
+        ("🌡️", T.S("landing.riskHeatTitle"), T.S("landing.riskHeatBody")),
+        ("🥶", T.S("landing.riskFrostTitle"), T.S("landing.riskFrostBody")),
+        ("💨", T.S("landing.riskWindTitle"), T.S("landing.riskWindBody")),
+        ("🌧️", T.S("landing.riskRainTitle"), T.S("landing.riskRainBody")),
+        ("💧", T.S("landing.riskHumidityTitle"), T.S("landing.riskHumidityBody")),
+    };
+
+    var steps = new (string Icon, string Title, string Body)[]
+    {
+        ("📍", T.S("landing.step1Title"), T.S("landing.step1Body")),
+        ("🌦️", T.S("landing.step2Title"), T.S("landing.step2Body")),
+        ("🛡️", T.S("landing.step3Title"), T.S("landing.step3Body")),
+    };
+}
+
+<div class="card-box">
+    <span class="brand-badge">🌿 KrishiMitra AI</span>
+    <h1 class="hero-title">@T.S("landing.heroTitle")</h1>
+    <p class="hero-subtitle">@T.S("landing.heroSubtitle")</p>
+
+    <div class="hero-cta-row">
+        <a href="/Account/Register" class="btn-diagnose hero-cta-btn">@T.S("landing.ctaRegister")</a>
+        <a href="/Advisory" class="hero-cta-btn hero-cta-secondary">@T.S("landing.ctaAdvisories")</a>
+        <a href="/Home/Index" class="hero-cta-btn hero-cta-secondary">@T.S("landing.ctaDiagnosis")</a>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-tile">
+            <div class="stat-value">912,523</div>
+            <div class="stat-label">@T.S("landing.statFarmers")</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-value">425,321</div>
+            <div class="stat-label">@T.S("landing.statFarms")</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-value">141,878</div>
+            <div class="stat-label">@T.S("landing.statCrops")</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-value">2,000</div>
+            <div class="stat-label">@T.S("landing.statAlerts")</div>
+        </div>
+    </div>
+
+    <div class="section-heading">
+        <h2>@T.S("landing.aboutTitle")</h2>
+    </div>
+    <div class="about-jkcip">
+        <p>
+            @T.S("landing.aboutBody")
+            <a href="https://jkcip.jk.gov.in" target="_blank" rel="noopener">@T.S("landing.aboutReadMoreLink")</a>.
+        </p>
+        <div class="jkcip-stat-row">
+            <div class="jkcip-stat"><div class="jkcip-stat-value">47%</div><div class="jkcip-stat-label">@T.S("landing.statWomen")<br />(141,000)</div></div>
+            <div class="jkcip-stat"><div class="jkcip-stat-value">30%</div><div class="jkcip-stat-label">@T.S("landing.statYouth")<br />(90,000)</div></div>
+            <div class="jkcip-stat"><div class="jkcip-stat-value">10%</div><div class="jkcip-stat-label">@T.S("landing.statVulnerable")<br />(30,000)</div></div>
+        </div>
+        <p class="jkcip-stat-source">@T.S("landing.statSource")</p>
+    </div>
+
+    <div class="focus-grid">
+        <div class="focus-card">
+            <div class="focus-icon">🌦️</div>
+            <h4>@T.S("landing.focus1Title")</h4>
+            <p>@T.S("landing.focus1Body")</p>
+        </div>
+        <div class="focus-card">
+            <div class="focus-icon">🤝</div>
+            <h4>@T.S("landing.focus2Title")</h4>
+            <p>@T.S("landing.focus2Body")</p>
+        </div>
+        <div class="focus-card">
+            <div class="focus-icon">🌱</div>
+            <h4>@T.S("landing.focus3Title")</h4>
+            <p>@T.S("landing.focus3Body")</p>
+        </div>
+    </div>
+
+    <div class="section-heading">
+        <h2>@T.S("landing.insightsTitle")</h2>
+        <p>@T.S("landing.insightsSubtitle")</p>
+    </div>
+
+    <div class="chart-row">
+        <div class="chart-panel">
+            <h3>@T.S("landing.cropChartTitle")</h3>
+            @if (Model.CropCounts.Count == 0)
+            {
+                <div class="chart-empty">@T.S("landing.cropChartEmpty")</div>
+            }
+            else
+            {
+                <div class="chart-canvas-wrap"><canvas id="cropChart"></canvas></div>
+            }
+        </div>
+        <div class="chart-panel">
+            <h3>@T.S("landing.alertChartTitle")</h3>
+            @if (Model.AlertCounts.Count == 0)
+            {
+                <div class="chart-empty">@T.S("landing.alertChartEmpty")</div>
+            }
+            else
+            {
+                <div class="chart-canvas-wrap"><canvas id="alertChart"></canvas></div>
+            }
+        </div>
+    </div>
+
+    <div class="section-heading">
+        <h2>@T.S("landing.howItWorksTitle")</h2>
+    </div>
+    <div class="steps-row">
+        @foreach (var step in steps)
+        {
+            <div class="step-item">
+                <div class="step-icon">@step.Icon</div>
+                <h4>@step.Title</h4>
+                <p>@step.Body</p>
+            </div>
+        }
+    </div>
+
+    <div class="section-heading">
+        <h2>@T.S("landing.cropsTitle")</h2>
+        <p>@T.S("landing.cropsSubtitle")</p>
+    </div>
+    <div class="crop-grid">
+        @foreach (var crop in CropTaxonomy.Crops)
+        {
+            <div class="crop-chip">
+                <span class="crop-chip-icon">@CropTaxonomy.IconFor(crop)</span>
+                <span>@CropTaxonomy.NameFor(crop, T.CurrentCulture)</span>
+            </div>
+        }
+    </div>
+
+    <div class="section-heading">
+        <h2>@T.S("landing.risksTitle")</h2>
+        <p>@T.S("landing.risksSubtitle")</p>
+    </div>
+    <div class="risk-grid">
+        @foreach (var risk in risks)
+        {
+            <div class="risk-card">
+                <div class="risk-icon">@risk.Icon</div>
+                <h4>@risk.Title</h4>
+                <p>@risk.Body</p>
+            </div>
+        }
+    </div>
+
+    <div class="cta-banner">
+        <div>
+            <h3>@T.S("landing.ctaBannerTitle")</h3>
+            <p>@T.S("landing.ctaBannerBody")</p>
+        </div>
+        <a href="/Account/Register" class="btn-diagnose cta-banner-btn">@T.S("landing.ctaRegister")</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            const palette = ['#22c55e', '#f59e0b', '#0e7490', '#fb7185', '#8b5cf6', '#f97316', '#14b8a6', '#e11d48', '#84cc16', '#6366f1', '#eab308', '#06b6d4', '#d946ef', '#65a30d'];
+
+            const cropCanvas = document.getElementById('cropChart');
+            if (cropCanvas) {
+                new Chart(cropCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(cropLabelsJson),
+                        datasets: [{
+                            data: @Html.Raw(cropValuesJson),
+                            backgroundColor: palette,
+                            borderWidth: 2,
+                            borderColor: '#fff',
+                        }],
+                    },
+                    options: {
+                        plugins: { legend: { position: 'right', labels: { boxWidth: 14, font: { size: 12 } } } },
+                        maintainAspectRatio: false,
+                    },
+                });
+            }
+
+            const alertCanvas = document.getElementById('alertChart');
+            if (alertCanvas) {
+                new Chart(alertCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: @Html.Raw(alertLabelsJson),
+                        datasets: [{
+                            data: @Html.Raw(alertValuesJson),
+                            backgroundColor: '#f97316',
+                            borderRadius: 6,
+                        }],
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        plugins: { legend: { display: false } },
+                        scales: { x: { ticks: { stepSize: 1, precision: 0 } } },
+                        maintainAspectRatio: false,
+                    },
+                });
+            }
+        })();
+    </script>
+}

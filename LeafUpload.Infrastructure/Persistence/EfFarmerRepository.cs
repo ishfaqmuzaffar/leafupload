@@ -28,6 +28,12 @@ namespace LeafUpload.Infrastructure.Persistence
             await _db.SaveChangesAsync();
         }
 
+        public async Task AddFarmAsync(Farm farm)
+        {
+            _db.Farms.Add(farm);
+            await _db.SaveChangesAsync();
+        }
+
         public async Task<Farmer?> GetFarmerByUsernameAsync(string username)
         {
             var normalized = Normalize(username);
@@ -42,6 +48,16 @@ namespace LeafUpload.Infrastructure.Persistence
         public async Task<IReadOnlyList<Farm>> GetFarmsByFarmerIdAsync(Guid farmerId)
         {
             return await _db.Farms.Where(f => f.FarmerId == farmerId).ToListAsync();
+        }
+
+        public async Task<int> GetFarmerCountAsync()
+        {
+            return await _db.Farmers.CountAsync();
+        }
+
+        public async Task<IReadOnlyList<Farm>> GetAllFarmsAsync()
+        {
+            return await _db.Farms.ToListAsync();
         }
 
         private static string Normalize(string username) => username.Trim().ToLowerInvariant();

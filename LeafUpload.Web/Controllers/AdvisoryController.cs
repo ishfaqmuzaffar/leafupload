@@ -1,4 +1,6 @@
 using LeafUpload.Core.Abstractions;
+using LeafUpload.Web.Services;
+using LeafUpload.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -10,10 +12,12 @@ namespace LeafUpload.Web.Controllers
     public class AdvisoryController : Controller
     {
         private readonly IFarmerRepository _farmerRepository;
+        private readonly FarmAdvisoryService _farmAdvisoryService;
 
-        public AdvisoryController(IFarmerRepository farmerRepository)
+        public AdvisoryController(IFarmerRepository farmerRepository, FarmAdvisoryService farmAdvisoryService)
         {
             _farmerRepository = farmerRepository;
+            _farmAdvisoryService = farmAdvisoryService;
         }
 
         [HttpGet("")]
@@ -21,7 +25,15 @@ namespace LeafUpload.Web.Controllers
         {
             var farmerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var farms = await _farmerRepository.GetFarmsByFarmerIdAsync(farmerId);
-            return View(farms);
+
+            var viewModel = new List<FarmAdvisoryViewModel>();
+            foreach (var farm in farms)
+            {
+                var advisory = await _farmAdvisoryService.GetOrGenerateAdvisoryAsync(farm);
+                viewModel.Add(new FarmAdvisoryViewModel { Farm = farm, Advisory = advisory });
+            }
+
+            return View(viewModel);
         }
     }
 }

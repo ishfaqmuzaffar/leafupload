@@ -4,6 +4,6 @@ namespace LeafUpload.Core.Abstractions
 {
     public interface ITreatmentAdvisor
     {
-        string GetAdvice(DiagnosisResult diagnosis);
+        DiseaseInfo GetAdvice(DiagnosisResult diagnosis);
     }
 }

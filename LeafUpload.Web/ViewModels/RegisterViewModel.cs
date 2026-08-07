@@ -25,5 +25,13 @@ namespace LeafUpload.Web.ViewModels
         [Required(ErrorMessage = "Select a crop type.")]
         [Display(Name = "Crop type")]
         public string CropType { get; set; } = string.Empty;
+
+        // Populated by the map pin on the registration form once the farmer has
+        // located and optionally fine-tuned their farm's position. Null if the
+        // farmer never used the map (e.g. JS disabled) - Register() falls back to
+        // server-side geocoding of PlaceName alone in that case.
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? ResolvedLocationName { get; set; }
     }
 }

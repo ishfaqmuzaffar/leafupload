@@ -67,7 +67,8 @@ namespace LeafUpload.Web.Controllers
                     DiagnosisId = diagnosis.Id,
                     Disease = diagnosis.PredictedDisease,
                     Confidence = diagnosis.Confidence,
-                    Treatment = diagnosis.TreatmentAdvice
+                    Treatment = diagnosis.TreatmentAdvice,
+                    Symptoms = diagnosis.Symptoms
                 });
             }
             finally
@@ -94,7 +95,8 @@ namespace LeafUpload.Web.Controllers
                 UploadedAt = sample?.UploadedAt,
                 Disease = diagnosis.PredictedDisease,
                 Confidence = diagnosis.Confidence,
-                Treatment = diagnosis.TreatmentAdvice
+                Treatment = diagnosis.TreatmentAdvice,
+                Symptoms = diagnosis.Symptoms
             });
         }
     }

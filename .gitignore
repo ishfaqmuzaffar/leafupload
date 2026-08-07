@@ -18,6 +18,9 @@ LeafUpload.Web/*.db-wal
 ## Claude Code local settings
 .claude/settings.local.json
 
+## Firebase service account credential - never commit, grants push-send access
+LeafUpload.Web/firebase-service-account.json
+
 ## ML.NET Model Builder authoring artifact - not needed to build/run the app
 ## (only MLModel1.mlnet is loaded at runtime); keep locally, don't ship it.
 LeafUpload.Infrastructure/MLModel1.zip

@@ -1,34 +1,163 @@
-@model IReadOnlyList<LeafUpload.Core.Models.Farm>
+@using LeafUpload.Core.Models
+@model IReadOnlyList<FarmAdvisoryViewModel>
 @{
-    ViewData["Title"] = "Crop Advisories";
+    ViewData["Title"] = "Crop Advisories · KrishiMitra AI";
+    ViewData["WideShell"] = true;
+
+    string SeverityClass(AdvisorySeverity s) => s switch
+    {
+        AdvisorySeverity.Critical => "sev-critical",
+        AdvisorySeverity.Warning => "sev-warning",
+        AdvisorySeverity.Caution => "sev-caution",
+        _ => "sev-info",
+    };
+
+    var shareUrl = $"{Context.Request.Scheme}://{Context.Request.Host}/";
+    var shareMessage = "I'm using KrishiMitra AI for weather-based crop advisories and instant leaf disease diagnosis in Jammu & Kashmir - check it out:";
+    var shareUrlEncoded = Uri.EscapeDataString(shareUrl);
+    var shareMessageEncoded = Uri.EscapeDataString(shareMessage);
 }
 
 <div class="card-box">
-    <span class="brand-badge">🌿 JKCIP/HADP</span>
-    <h1 class="title">Crop Advisories</h1>
-    <p class="subtitle">Weather-driven guidance for your registered farm@(Model.Count == 1 ? "" : "s").</p>
+    <span class="brand-badge">🌿 KrishiMitra AI</span>
+    <h1 class="title">@T.S("advisory.title")</h1>
+    <p class="subtitle">@(Model.Count == 1 ? T.S("advisory.subtitleOne") : T.S("advisory.subtitleMany"))</p>
 
     @if (Model.Count == 0)
     {
-        <div class="alert-modern">You don't have a registered farm yet.</div>
+        <div class="alert-modern">@T.S("advisory.noFarm") <a href="/Account/Register">@T.S("advisory.registerOne")</a> @T.S("advisory.toStartGetting")</div>
     }
     else
     {
-        foreach (var farm in Model)
+        foreach (var entry in Model)
         {
-            <div class="result-card">
-                <div class="result-head">
-                    <div class="result-emoji">🌾</div>
+            var farm = entry.Farm;
+            var advisory = entry.Advisory;
+            var alerts = advisory?.Alerts ?? new List<AdvisoryAlert>();
+            var activeAlerts = alerts.Count(a => a.Severity != AdvisorySeverity.Info);
+
+            <div class="farm-block">
+                <div class="farm-card-header">
+                    <div class="farm-crop-icon">@CropTaxonomy.IconFor(farm.CropType)</div>
                     <div>
-                        <div class="result-status">@farm.CropType</div>
-                        <p class="result-disease">@(farm.ResolvedLocationName ?? farm.PlaceName)</p>
+                        <p class="farm-crop-name">@CropTaxonomy.NameFor(farm.CropType, T.CurrentCulture)</p>
+                        <p class="farm-location">📍 @(farm.ResolvedLocationName ?? farm.PlaceName)</p>
                     </div>
+                    @if (advisory != null)
+                    {
+                        <span class="farm-alert-count">
+                            @(activeAlerts == 0 ? $"✅ {T.S("advisory.allClear")}" : $"⚠️ {activeAlerts} {(activeAlerts == 1 ? T.S("advisory.alert") : T.S("advisory.alerts"))}")
+                        </span>
+                    }
                 </div>
-                <div class="treatment-box">
-                    <strong>Advisory</strong>
-                    Weather-based advisories are coming soon for this farm.
+
+                <div class="farm-body">
+                    @if (advisory == null)
+                    {
+        <div class="alert-card sev-info">
+                            <div class="alert-icon">⏳</div>
+                            <div>
+                                <p class="alert-title">@T.S("advisory.pendingTitle")</p>
+                                <p class="alert-message">@T.S("advisory.pendingMessage")</p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        var forecast = advisory.Forecast;
+                        if (forecast != null && forecast.Dates.Length > 0)
+                        {
+                            <div class="weather-strip">
+                                @for (var i = 0; i < forecast.Dates.Length; i++)
+                                {
+                                    var code = forecast.WeatherCode != null && i < forecast.WeatherCode.Length ? forecast.WeatherCode[i] : (int?)null;
+                                    <div class="weather-day" title="@WeatherCodeDisplay.LabelFor(code)">
+                                        <div class="wd-date">@forecast.Dates[i].ToString("ddd")</div>
+                                        <div class="wd-icon">@WeatherCodeDisplay.IconFor(code)</div>
+                                        <div class="wd-temp">@forecast.TempMinC[i].ToString("0")&deg;/@forecast.TempMaxC[i].ToString("0")&deg;</div>
+                                        <div class="wd-precip">@forecast.PrecipitationMm[i].ToString("0.#")mm</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @foreach (var alert in alerts)
+                        {
+                            <div class="alert-card @SeverityClass(alert.Severity)">
+                                <div class="alert-icon">@alert.Icon</div>
+                                <div style="flex:1;">
+                                    <div class="alert-title-row">
+                                        <p class="alert-title">@alert.Title</p>
+                                        @if (!string.IsNullOrEmpty(alert.Timing))
+                                        {
+                                            <span class="alert-timing">@alert.Timing</span>
+                                        }
+                                    </div>
+                                    <p class="alert-message">@alert.Message</p>
+                                    @if (alert.Actions.Count > 0)
+                                    {
+                                        <ul class="alert-actions">
+                                            @foreach (var action in alert.Actions)
+                                            {
+                                                <li>@action</li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="advisory-footer">
+                            <p class="advisory-meta">
+                                @T.S("advisory.generated") @advisory.GeneratedAt.ToString("MMM d, yyyy HH:mm") UTC
+                                &middot; @(advisory.ModelUsed?.Contains("Claude", StringComparison.OrdinalIgnoreCase) == true ? T.S("advisory.aiGenerated") : T.S("advisory.ruleBased"))
+                            </p>
+                            <button type="button" class="btn-push" title="Not wired up yet">@T.S("advisory.pushToFarmer")</button>
+                        </div>
+                    }
                 </div>
             </div>
         }
     }
+
+    <div class="kkg-box">
+        <p class="kkg-prompt">@T.S("advisory.sharePrompt")</p>
+        <div class="share-row">
+            <a class="hero-cta-btn hero-cta-secondary" href="https://wa.me/?text=@(shareMessageEncoded)%20@(shareUrlEncoded)" target="_blank" rel="noopener">💬 @T.S("advisory.shareWhatsapp")</a>
+            <a class="hero-cta-btn hero-cta-secondary" href="https://www.facebook.com/sharer/sharer.php?u=@(shareUrlEncoded)" target="_blank" rel="noopener">📘 @T.S("advisory.shareFacebook")</a>
+            <a class="hero-cta-btn hero-cta-secondary" href="https://twitter.com/intent/tweet?text=@(shareMessageEncoded)&amp;url=@(shareUrlEncoded)" target="_blank" rel="noopener">🐦 @T.S("advisory.shareTwitter")</a>
+            <button type="button" class="hero-cta-btn hero-cta-secondary" data-share-url="@shareUrl" data-copied-label="@T.S("advisory.shareCopied")" data-copy-label="@T.S("advisory.shareCopy")" onclick="krishiCopyShareLink(this)">🔗 <span class="share-copy-label">@T.S("advisory.shareCopy")</span></button>
+        </div>
+    </div>
 </div>
+
+<script>
+    function krishiShowCopied(btn) {
+        var label = btn.querySelector('.share-copy-label');
+        label.textContent = btn.dataset.copiedLabel;
+        setTimeout(function () { label.textContent = btn.dataset.copyLabel; }, 2000);
+    }
+
+    function krishiFallbackCopy(text) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try { document.execCommand('copy'); } catch (e) { /* no-op - clipboard truly unavailable */ }
+        document.body.removeChild(textarea);
+    }
+
+    function krishiCopyShareLink(btn) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(btn.dataset.shareUrl)
+                .then(function () { krishiShowCopied(btn); })
+                .catch(function () { krishiFallbackCopy(btn.dataset.shareUrl); krishiShowCopied(btn); });
+        } else {
+            krishiFallbackCopy(btn.dataset.shareUrl);
+            krishiShowCopied(btn);
+        }
+    }
+</script>

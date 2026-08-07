@@ -27,6 +27,9 @@ namespace LeafUpload.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AlertsJson")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("FarmId")
                         .HasColumnType("TEXT");
 
@@ -45,6 +48,39 @@ namespace LeafUpload.Infrastructure.Persistence.Migrations
                     b.HasIndex("FarmId");
 
                     b.ToTable("Advisories");
+                });
+
+            modelBuilder.Entity("LeafUpload.Core.Models.DeviceToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("FarmerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmerId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("DeviceTokens");
                 });
 
             modelBuilder.Entity("LeafUpload.Core.Models.Farm", b =>
@@ -113,6 +149,15 @@ namespace LeafUpload.Infrastructure.Persistence.Migrations
                     b.HasOne("LeafUpload.Core.Models.Farm", null)
                         .WithMany()
                         .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LeafUpload.Core.Models.DeviceToken", b =>
+                {
+                    b.HasOne("LeafUpload.Core.Models.Farmer", null)
+                        .WithMany()
+                        .HasForeignKey("FarmerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

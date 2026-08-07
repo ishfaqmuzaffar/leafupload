@@ -1,30 +1,47 @@
 @model LoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Login · KrishiMitra AI";
+    ViewData["WideShell"] = true;
 }
 
 <div class="card-box">
-    <span class="brand-badge">🌿 JKCIP/HADP</span>
-    <h1 class="title">Welcome Back</h1>
-    <p class="subtitle">Log in to view your farm's crop advisories.</p>
+    <span class="brand-badge">🌿 KrishiMitra AI</span>
+    <h1 class="title">@T.S("login.title")</h1>
+    <p class="subtitle">@T.S("login.subtitle")</p>
 
-    <div asp-validation-summary="All" class="validation-summary-errors"></div>
+    <div class="side-layout">
+        <div>
+            <div asp-validation-summary="All" class="validation-summary-errors"></div>
 
-    <form asp-action="Login" method="post">
-        <input type="hidden" asp-for="ReturnUrl" />
-        <div class="form-group">
-            <label asp-for="Username" class="form-label"></label>
-            <input asp-for="Username" class="form-control" autocomplete="username" />
-            <span asp-validation-for="Username" class="text-danger"></span>
+            <form asp-action="Login" method="post">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div class="form-group">
+                    <label asp-for="Username" class="form-label">@T.S("field.username")</label>
+                    <input asp-for="Username" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">@T.S("field.password")</label>
+                    <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn-diagnose">🔑 @T.S("login.button")</button>
+            </form>
+
+            <a href="/Account/Register" class="form-link">@T.S("login.registerLink")</a>
         </div>
-        <div class="form-group">
-            <label asp-for="Password" class="form-label"></label>
-            <input asp-for="Password" class="form-control" autocomplete="current-password" />
-            <span asp-validation-for="Password" class="text-danger"></span>
+
+        <div class="side-col">
+            <div class="risk-card">
+                <div class="risk-icon">🌟</div>
+                <h4>@T.S("login.sideTitle")</h4>
+                <ul class="diag-tip-list">
+                    <li>@T.S("login.sideTip1")</li>
+                    <li>@T.S("login.sideTip2")</li>
+                    <li>@T.S("login.sideTip3")</li>
+                </ul>
+            </div>
         </div>
-
-        <button type="submit" class="btn-diagnose">🔑 Log In</button>
-    </form>
-
-    <a href="/Account/Register" class="form-link">New here? Register your farm</a>
+    </div>
 </div>

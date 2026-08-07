@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace LeafUpload.Core.Models
 {
     public class DiagnosisResult
@@ -15,5 +17,9 @@ namespace LeafUpload.Core.Models
 
         // Suggested treatment
         public string TreatmentAdvice { get; set; } = string.Empty;
+
+        // Other signs the farmer can check to verify the model's call before
+        // acting on it - a single photo is one data point, not a lab test.
+        public IReadOnlyList<string> Symptoms { get; set; } = System.Array.Empty<string>();
     }
 }

@@ -37,21 +37,38 @@ namespace LeafUpload.Web.Controllers
                 return View(model);
 
             var placeName = model.PlaceName.Trim();
-            var location = await _weatherService.GeocodeAsync(placeName);
-            if (location == null)
+            double latitude, longitude;
+            string resolvedName;
+
+            if (model.Latitude.HasValue && model.Longitude.HasValue)
             {
-                ModelState.AddModelError(nameof(model.PlaceName),
-                    "Couldn't find that location - try adding a district or state, e.g. \"Anantnag, Jammu and Kashmir\".");
-                return View(model);
+                // Farmer located (and optionally fine-tuned) their farm via the map pin.
+                latitude = model.Latitude.Value;
+                longitude = model.Longitude.Value;
+                resolvedName = model.ResolvedLocationName ?? placeName;
+            }
+            else
+            {
+                // Map wasn't used (e.g. JS disabled) - fall back to geocoding the place name alone.
+                var location = await _weatherService.GeocodeAsync(placeName);
+                if (location == null)
+                {
+                    ModelState.AddModelError(nameof(model.PlaceName),
+                        "Couldn't find that location - try adding a district or state, e.g. \"Anantnag, Jammu and Kashmir\".");
+                    return View(model);
+                }
+                latitude = location.Latitude;
+                longitude = location.Longitude;
+                resolvedName = location.ResolvedName;
             }
 
             var farm = new Farm
             {
                 PlaceName = placeName,
                 CropType = model.CropType,
-                Latitude = location.Latitude,
-                Longitude = location.Longitude,
-                ResolvedLocationName = location.ResolvedName,
+                Latitude = latitude,
+                Longitude = longitude,
+                ResolvedLocationName = resolvedName,
             };
 
             var result = await _authService.RegisterAsync(model.Username, model.Password, farm);
@@ -63,6 +80,26 @@ namespace LeafUpload.Web.Controllers
 
             await SignInFarmerAsync(result.Farmer!);
             return RedirectToAction("Index", "Advisory");
+        }
+
+        [HttpGet("GeocodePreview")]
+        public async Task<IActionResult> GeocodePreview(string? placeName)
+        {
+            if (string.IsNullOrWhiteSpace(placeName))
+                return Json(new { found = false });
+
+            var location = await _weatherService.GeocodeAsync(placeName.Trim());
+            if (location == null)
+                return Json(new { found = false });
+
+            return Json(new { found = true, latitude = location.Latitude, longitude = location.Longitude, resolvedName = location.ResolvedName });
+        }
+
+        [HttpGet("ReverseGeocode")]
+        public async Task<IActionResult> ReverseGeocode(double lat, double lon)
+        {
+            var resolvedName = await _weatherService.ReverseGeocodeAsync(lat, lon);
+            return Json(new { resolvedName });
         }
 
         [HttpGet("Login")]

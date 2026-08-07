@@ -1,5 +1,6 @@
 @{
-    ViewData["Title"] = "Leaf Diagnosis";
+    ViewData["Title"] = "Leaf Diagnosis · KrishiMitra AI";
+    ViewData["WideShell"] = true;
 
     string FormatLabel(string? raw)
     {
@@ -14,60 +15,105 @@
     bool hasResult = !string.IsNullOrEmpty(diseaseRaw);
     bool isHealthy = hasResult && diseaseRaw!.Contains("healthy", StringComparison.OrdinalIgnoreCase);
     double confidencePct = ViewBag.Confidence != null ? Math.Round((double)(float)ViewBag.Confidence * 100, 1) : 0;
+    var symptoms = ViewBag.Symptoms as IReadOnlyList<string> ?? new List<string>();
 }
 
 <div class="card-box">
-    <span class="brand-badge">🌿 JKCIP/HADP</span>
-    <h1 class="title">Leaf Disease Identification</h1>
-    <p class="subtitle">Upload a photo and let the model diagnose it in seconds.</p>
+    <span class="brand-badge">🌿 KrishiMitra AI</span>
+    <h1 class="title">@T.S("diag.title")</h1>
+    <p class="subtitle">@T.S("diag.subtitle")</p>
 
     @if (ViewBag.Error != null)
     {
         <div class="alert-modern">⚠️ @ViewBag.Error</div>
     }
 
-    <form method="post" enctype="multipart/form-data" id="uploadForm">
-        <label class="dropzone" id="dropzone">
-            <input type="file" name="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/bmp" required />
-            <div id="dzPrompt">
-                <div class="dz-icon">📤</div>
-                <div class="dz-text">Drop a leaf photo here, or click to browse</div>
-                <div class="dz-hint">JPEG, PNG, WEBP or BMP &middot; up to 10&nbsp;MB</div>
-            </div>
-            <div class="dz-text" id="dzFileName" style="display:none;"></div>
-        </label>
-        <div class="preview-wrap" id="previewWrap">
-            <img id="previewImg" alt="Selected leaf preview" />
-        </div>
-
-        <button type="submit" class="btn-diagnose">🔍 Diagnose Leaf</button>
-    </form>
-
-    @if (hasResult)
-    {
-        <div class="result-card @(isHealthy ? "" : "is-warning")">
-            <div class="result-head">
-                <div class="result-emoji">@(isHealthy ? "✅" : "🩺")</div>
-                <div>
-                    <div class="result-status">@(isHealthy ? "Looking healthy" : "Diagnosis result")</div>
-                    <p class="result-disease">@FormatLabel(diseaseRaw)</p>
+    <div class="diag-layout">
+        <div class="diag-main">
+            <form method="post" enctype="multipart/form-data" id="uploadForm">
+                <label class="dropzone" id="dropzone">
+                    <input type="file" name="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/bmp" required />
+                    <div id="dzPrompt">
+                        <div class="dz-icon">📤</div>
+                        <div class="dz-text">@T.S("diag.dropText")</div>
+                        <div class="dz-hint">@T.S("diag.dropHint")</div>
+                    </div>
+                    <div class="dz-text" id="dzFileName" style="display:none;"></div>
+                </label>
+                <div class="preview-wrap" id="previewWrap">
+                    <img id="previewImg" alt="Selected leaf preview" />
                 </div>
-            </div>
 
-            <div class="confidence-label">
-                <span>Confidence</span>
-                <span>@confidencePct.ToString("0.0")%</span>
-            </div>
-            <div class="confidence-track">
-                <div class="confidence-fill" id="confidenceFill" data-target="@confidencePct.ToString(System.Globalization.CultureInfo.InvariantCulture)"></div>
-            </div>
+                <button type="submit" class="btn-diagnose">🔍 @T.S("diag.button")</button>
+            </form>
 
-            <div class="treatment-box">
-                <strong>Recommended action</strong>
-                @ViewBag.Treatment
+            @if (hasResult)
+            {
+                <div class="result-card @(isHealthy ? "" : "is-warning")">
+                    <div class="result-head">
+                        <div class="result-emoji">@(isHealthy ? "✅" : "🩺")</div>
+                        <div>
+                            <div class="result-status">@(isHealthy ? T.S("diag.healthy") : T.S("diag.result"))</div>
+                            <p class="result-disease">@FormatLabel(diseaseRaw)</p>
+                        </div>
+                    </div>
+
+                    <div class="confidence-label">
+                        <span>@T.S("diag.confidence")</span>
+                        <span>@confidencePct.ToString("0.0")%</span>
+                    </div>
+                    <div class="confidence-track">
+                        <div class="confidence-fill" id="confidenceFill" data-target="@confidencePct.ToString(System.Globalization.CultureInfo.InvariantCulture)"></div>
+                    </div>
+
+                    @if (!isHealthy && symptoms.Count > 0)
+                    {
+                        <div class="symptoms-box">
+                            <strong>@T.S("diag.symptomsTitle")</strong>
+                            <p class="symptoms-hint">@T.S("diag.symptomsHint")</p>
+                            <ul>
+                                @foreach (var symptom in symptoms)
+                                {
+                                    <li>@symptom</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <div class="treatment-box">
+                        <strong>@T.S("diag.recommendedAction")</strong>
+                        @ViewBag.Treatment
+                    </div>
+
+                    @if (!isHealthy)
+                    {
+                        <div class="kkg-box">
+                            <p class="kkg-prompt">@T.S("diag.kkgPrompt")</p>
+                            <a href="https://play.google.com/store/apps/details?id=com.bisagn.kkg&hl=en_IN" target="_blank" rel="noopener" class="btn-diagnose kkg-btn">@T.S("diag.kkgButton")</a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="diag-side">
+            <div class="risk-card">
+                <div class="risk-icon">📸</div>
+                <h4>@T.S("diag.tipsTitle")</h4>
+                <ul class="diag-tip-list">
+                    <li>@T.S("diag.tip1")</li>
+                    <li>@T.S("diag.tip2")</li>
+                    <li>@T.S("diag.tip3")</li>
+                    <li>@T.S("diag.tip4")</li>
+                </ul>
+            </div>
+            <div class="risk-card">
+                <div class="risk-icon">🧪</div>
+                <h4>@T.S("diag.howTitle")</h4>
+                <p>@T.S("diag.howBody")</p>
             </div>
         </div>
-    }
+    </div>
 </div>
 
 @section Scripts {
@@ -120,7 +166,7 @@
 
         uploadForm.addEventListener('submit', () => {
             if (fileInput.files.length > 0) {
-                loadingText.textContent = 'Analyzing your leaf…';
+                loadingText.textContent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(T.S("diag.analyzing")));
                 loadingOverlay.classList.add('active');
             }
         });

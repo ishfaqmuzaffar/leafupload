@@ -52,7 +52,9 @@ namespace LeafUpload.Infrastructure.ML
                 PredictedDisease = bestPrediction,
                 Confidence = confidence
             };
-            diagnosis.TreatmentAdvice = _treatmentAdvisor.GetAdvice(diagnosis);
+            var advice = _treatmentAdvisor.GetAdvice(diagnosis);
+            diagnosis.TreatmentAdvice = advice.Treatment;
+            diagnosis.Symptoms = advice.Symptoms;
 
             return diagnosis;
         }

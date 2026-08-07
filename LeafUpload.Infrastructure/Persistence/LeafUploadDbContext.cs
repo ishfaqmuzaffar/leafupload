@@ -12,6 +12,7 @@ namespace LeafUpload.Infrastructure.Persistence
         public DbSet<Farmer> Farmers => Set<Farmer>();
         public DbSet<Farm> Farms => Set<Farm>();
         public DbSet<Advisory> Advisories => Set<Advisory>();
+        public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +30,16 @@ namespace LeafUpload.Infrastructure.Persistence
                 .HasOne<Farm>()
                 .WithMany()
                 .HasForeignKey(a => a.FarmId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DeviceToken>()
+                .HasIndex(t => t.Token)
+                .IsUnique();
+
+            modelBuilder.Entity<DeviceToken>()
+                .HasOne<Farmer>()
+                .WithMany()
+                .HasForeignKey(t => t.FarmerId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

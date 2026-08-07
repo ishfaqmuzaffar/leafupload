@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1051741103315",
+    "project_id": "krishimitra-ai-jkcip",
+    "storage_bucket": "krishimitra-ai-jkcip.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051741103315:android:9bc6f67ec27ba8472b6026",
+        "android_client_info": {
+          "package_name": "com.jkcip.krishimitra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB92QCruzU5x6D4ZQ-SFne7yBTNXSPTYec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051741103315:android:f667aca527c178a62b6026",
+        "android_client_info": {
+          "package_name": "com.krishimitra.jkcip"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB92QCruzU5x6D4ZQ-SFne7yBTNXSPTYec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
