@@ -23,10 +23,11 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Push notifications are only wired up for Web and Android so far (see
+  // Push notifications are wired up for Web, Android, and iOS (see
   // firebase_options.dart) - hide the toggle elsewhere (e.g. Windows desktop)
   // rather than show a control that can't do anything.
-  bool get _pushSupported => kIsWeb || defaultTargetPlatform == TargetPlatform.android;
+  bool get _pushSupported =>
+      kIsWeb || defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
   bool? _notificationsEnabled;
 
