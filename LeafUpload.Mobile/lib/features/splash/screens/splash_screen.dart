@@ -15,13 +15,26 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   final AuthService _authService = AuthService();
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))
+      ..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.88, end: 1.08).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
     _bootstrap();
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   Future<void> _bootstrap() async {
@@ -52,17 +65,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _SplashLogo(),
-              SizedBox(height: AppSpacing.lg),
-              Text(
+              ScaleTransition(scale: _pulseAnimation, child: const _SplashLogo()),
+              const SizedBox(height: AppSpacing.lg),
+              const Text(
                 'KrishiMitra AI',
                 style: TextStyle(
                   fontSize: 30,
@@ -70,8 +83,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: AppColors.textPrimary,
                 ),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'Weather-smart crop advisories and instant leaf diagnosis',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -79,8 +92,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: AppColors.textSecondary,
                 ),
               ),
-              SizedBox(height: AppSpacing.xl),
-              CircularProgressIndicator(
+              const SizedBox(height: AppSpacing.xl),
+              const CircularProgressIndicator(
                 color: AppColors.primary,
               )
             ],
@@ -96,14 +109,10 @@ class _SplashLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: 42,
-      backgroundColor: AppColors.primaryLight,
-      child: Icon(
-        Icons.eco_rounded,
-        size: 42,
-        color: AppColors.primary,
-      ),
+    return Image.asset(
+      'assets/icon/app_icon.png',
+      height: 120,
+      width: 120,
     );
   }
 }

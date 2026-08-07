@@ -95,15 +95,19 @@ class DashboardTile extends StatelessWidget {
           children: [
             if (icon != null) icon! else const SizedBox.shrink(),
             if (badgeText != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: (badgeColor ?? AppColors.primary).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  badgeText!,
-                  style: TextStyle(color: badgeColor ?? AppColors.primary, fontSize: 10.5, fontWeight: FontWeight.w700),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: (badgeColor ?? AppColors.primary).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    badgeText!,
+                    style: TextStyle(color: badgeColor ?? AppColors.primary, fontSize: 10.5, fontWeight: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
           ],
