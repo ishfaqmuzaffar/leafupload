@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'app.dart';
@@ -14,6 +15,17 @@ void main() async {
   if (kIsWeb || defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS) {
     try {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+      // iOS silently drops notifications while the app is in the foreground
+      // unless told otherwise (Android shows them either way) - without this,
+      // a farmer with the app open would never see a weather alert land.
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
     } catch (e) {
       debugPrint('Firebase init skipped: $e');
     }
