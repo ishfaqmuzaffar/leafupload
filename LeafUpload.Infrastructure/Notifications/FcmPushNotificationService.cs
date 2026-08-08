@@ -36,6 +36,18 @@ namespace LeafUpload.Infrastructure.Notifications
                 if (response.FailureCount > 0)
                 {
                     _logger.LogWarning("FCM: {Failed}/{Total} push notifications failed to send.", response.FailureCount, tokens.Count);
+                    for (var i = 0; i < response.Responses.Count; i++)
+                    {
+                        var result = response.Responses[i];
+                        if (!result.IsSuccess)
+                        {
+                            _logger.LogWarning(
+                                "FCM failure for token ending {TokenSuffix}: {ErrorCode} - {Message}",
+                                tokens[i].Length > 8 ? tokens[i][^8..] : tokens[i],
+                                result.Exception?.MessagingErrorCode,
+                                result.Exception?.Message);
+                        }
+                    }
                 }
             }
             catch (System.Exception ex)
