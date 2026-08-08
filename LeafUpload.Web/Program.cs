@@ -82,6 +82,10 @@ builder.Services.AddScoped<ClaudeAdvisoryGenerator>();
 builder.Services.AddScoped<IAdvisoryGenerator, StaticRuleAdvisoryGenerator>();
 builder.Services.AddScoped<LeafUpload.Web.Services.FarmAdvisoryService>();
 
+// Proactively pushes severe-weather alerts to affected farmers instead of only
+// checking a farm's forecast when that farmer happens to open the app.
+builder.Services.AddHostedService<LeafUpload.Web.Services.WeatherAlertSweepService>();
+
 // Cookie stays the default scheme for the MVC web app (AccountController). JWT bearer
 // is added alongside it purely for api/mobile/* clients - controllers opt in explicitly
 // via [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)].

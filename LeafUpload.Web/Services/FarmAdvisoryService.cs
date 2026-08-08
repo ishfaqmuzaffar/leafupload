@@ -8,7 +8,7 @@ namespace LeafUpload.Web.Services
     // so the 24h-cache-then-generate-then-fallback-on-error logic lives in one place.
     public class FarmAdvisoryService
     {
-        private static readonly TimeSpan FreshnessWindow = TimeSpan.FromHours(24);
+        private static readonly TimeSpan DefaultFreshnessWindow = TimeSpan.FromHours(24);
 
         private readonly IAdvisoryRepository _advisoryRepository;
         private readonly IWeatherService _weatherService;
@@ -33,10 +33,15 @@ namespace LeafUpload.Web.Services
             _logger = logger;
         }
 
-        public async Task<Advisory?> GetOrGenerateAdvisoryAsync(Farm farm)
+        // freshnessWindow lets callers other than the interactive "farmer opened the
+        // app" path (e.g. the background weather sweep, which wants to notice a
+        // newly-issued severe alert well before 24h are up) ask for a shorter cache
+        // lifetime without affecting the default on-demand behavior.
+        public async Task<Advisory?> GetOrGenerateAdvisoryAsync(Farm farm, TimeSpan? freshnessWindow = null)
         {
+            var window = freshnessWindow ?? DefaultFreshnessWindow;
             var existing = await _advisoryRepository.GetLatestAdvisoryForFarmAsync(farm.Id);
-            if (existing != null && DateTime.UtcNow - existing.GeneratedAt < FreshnessWindow)
+            if (existing != null && DateTime.UtcNow - existing.GeneratedAt < window)
                 return existing;
 
             // No coordinates to fetch weather with - shouldn't happen for farms
